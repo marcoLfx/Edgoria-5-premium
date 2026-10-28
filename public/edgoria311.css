@@ -1,0 +1,22 @@
+/* EDGORIA 3.1.1 – visual polish and modular administration. */
+:root{--eg311-outline:rgba(79,190,226,.22);--eg311-bg:rgba(12,34,63,.62)}
+.eg311-users-overview{margin-top:18px;background:linear-gradient(130deg,rgba(10,33,62,.91),rgba(12,21,46,.92));border-color:var(--eg311-outline)!important}
+.eg311-users-overview .cardhead{align-items:center;gap:12px;flex-wrap:wrap}
+.eg311-user-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:19px}
+.eg311-user-row{display:flex;align-items:center;gap:11px;min-width:0;padding:13px 15px;border:1px solid rgba(97,180,228,.18);border-radius:14px;background:rgba(10,29,53,.75);transition:background .2s,border-color .2s,transform .2s}
+.eg311-user-row:hover{background:rgba(19,46,80,.82);border-color:rgba(103,222,232,.4);transform:translateY(-1px)}
+.eg311-user-row .eg31-avatar{flex:none}
+.eg311-user-identity{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.eg311-user-identity strong{font-size:13px;color:#edf6ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eg311-user-identity small{font-size:11px;color:#a5bed5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eg311-user-state{flex:none;border:1px solid #485777;border-radius:999px;padding:5px 9px;font-size:10px;letter-spacing:.02em;color:#cfdbec}
+.eg311-user-state.on{color:#65e5d0;border-color:rgba(101,229,208,.36);background:rgba(35,113,98,.18)}
+.eg311-user-state.wait{color:#f9cf8c;border-color:rgba(249,207,140,.38);background:rgba(152,91,20,.18)}
+.eg311-user-state.off{color:#fa97a3;border-color:rgba(250,151,163,.28);background:rgba(133,47,56,.16)}
+.eg311-admin-warning{margin-bottom:18px;color:#fce3b0;background:rgba(122,79,14,.14);border:1px solid rgba(245,190,92,.3)}
+.eg311-system-help{max-width:720px;padding:24px}
+.eg31-pending{animation:eg311-appear .32s ease-out both}
+.eg31-approval,.eg311-users-overview{animation:eg311-appear .35s ease-out both}
+@keyframes eg311-appear{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:760px){.eg311-user-grid{grid-template-columns:1fr}.eg311-user-row{padding:12px}.eg311-user-state{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.eg31-pending,.eg31-approval,.eg311-users-overview{animation:none}.eg311-user-row{transition:none;transform:none!important}}

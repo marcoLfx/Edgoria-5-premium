@@ -1,0 +1,31 @@
+EDGORIA 4.0.9 - CORRECCION DE CUENTAS MT5
+===========================================
+
+Objetivo: el botón «+ Crear cuenta para MT5» no abría nada porque
+su acción no estaba implementada en el controlador de clics.
+
+Cambios:
+- La acción new-account abre el formulario de creación.
+- La acción edit-account abre el formulario de la cuenta propia.
+- Mis cuentas MT5 muestra las fichas y el botón Añadir cuenta.
+- MT5 Bridge e Importar Excel MT5 comparten el listado privado.
+- Al guardar una cuenta nueva, el importador Excel la selecciona.
+- Se validan los campos del formulario y se guardan en public.accounts
+  usando el usuario autenticado y las reglas RLS de Supabase.
+- Se conserva el dashboard, calendario, importador, paneles admin y partners.
+- Sin cambios en APIs, SQL ni claves de producción.
+
+Parche pequeño: únicamente public/app.js y public/index.html.
+Sube SOLO esos dos archivos a la carpeta public del repositorio
+marcoLfx/edgoria-produccion, confirma commit en main y verifica Vercel Ready.
+
+Pruebas de desarrollo:
+- 58 pruebas automáticas de Node superadas.
+- 11 pruebas Python superadas.
+- Navegador simulado: abrir importación Excel como admin, añadir cuenta,
+  guardar en un cliente Supabase simulado, comprobar que aparece en lista
+  y queda seleccionada en el selector Excel, sin errores JS.
+
+IMPORTANTE: No se ha desplegado este parche en Vercel ni se ha probado
+una escritura real con una sesión del usuario contra Supabase. Valida
+el alta en tu entorno antes de dar la incidencia por cerrada.

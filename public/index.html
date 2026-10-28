@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#070b16" />
+  <meta name="description" content="EDGORIA: tu diario privado para comprender el rendimiento, gestionar el riesgo y registrar tus decisiones." />
+  <title>EDGORIA 5.0 — Trading Intelligence</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css?v=17.0" />
+  <link rel="stylesheet" href="/neo13.css?v=17.0" />
+  <link rel="stylesheet" href="/neo14.css?v=17.0" />
+  <link rel="stylesheet" href="/neo15.css?v=17.0" />
+  <link rel="stylesheet" href="/neo16.css?v=17.0" />
+  <link rel="stylesheet" href="/neo17.css?v=17.0" />
+  <link rel="stylesheet" href="/neo18.css?v=18.0" />
+  <link rel="stylesheet" href="/neo181.css?v=18.1" />
+  <link rel="stylesheet" href="/edgoria31.css?v=3.1.1" />
+  <link rel="stylesheet" href="/edgoria311.css?v=3.1.2" />
+  <link rel="stylesheet" href="/edgoria312.css?v=3.1.2" />
+  <link rel="stylesheet" href="/nova42.css?v=4.2.0" />
+  <link rel="stylesheet" href="/edgoria5.css?v=5.0.0" />
+  <script type="module" src="/app.js?v=5.0.0"></script>
+</head>
+<body>
+  <div id="root" aria-live="off"><div class="boot"><span class="spinner"></span><strong>EDGORIA</strong><span>Preparando tu espacio...</span></div></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script>
+    // Independent of the module loader: also catches missing /app.js or blocked imports.
+    window.__edgoriaBootState={step:'Cargando la aplicación',done:false};
+    // Capture top-level JavaScript failures without exposing session tokens or application data.
+    window.addEventListener('error',function(ev){
+      var state=window.__edgoriaBootState;
+      if(!state || state.done)return;
+      var file='archivo desconocido';
+      try{file=new URL(ev.filename,location.href).pathname.split('/').pop()||file}catch(e){}
+      var kind=ev.error?.name||'Error JavaScript';
+      if(!/^(ReferenceError|TypeError|SyntaxError|Error|RangeError)$/.test(kind))kind='Error JavaScript';
+      state.step='Error en '+file+(ev.lineno?':'+ev.lineno:'')+' ('+kind+')';
+    });
+    window.addEventListener('unhandledrejection',function(){
+      var state=window.__edgoriaBootState;
+      if(state && !state.done)state.step='Petición del navegador rechazada (consulta Console)';
+    });
+    window.setTimeout(function(){
+      var root=document.getElementById('root');
+      if(!root || !root.querySelector('.boot') || window.__edgoriaBootState.done)return;
+      var step=window.__edgoriaBootState.step;
+      root.innerHTML='<div class="setup-screen"><div class="setup-card"><div class="section-label">DIAGNÓSTICO DE INICIO</div><h1>EDGORIA está tardando en iniciar</h1><p id="boot-stage-detail"></p><p>La publicación está activa, pero una petición o el código del navegador todavía no termina de cargar. Puedes reintentar o comprobar si la API responde.</p><div class="row wrap"><button class="btn primary" id="boot-retry">Reintentar</button><a class="btn" href="/api/config" target="_blank" rel="noopener noreferrer">Verificar API</a></div><p class="micro" style="margin-top:16px">Si persiste, revisa la consola del navegador (F12 → Console). No compartas tokens de sesión.</p></div></div>';
+      document.getElementById('boot-stage-detail').textContent='Etapa pendiente: '+step;
+      document.getElementById('boot-retry').addEventListener('click',function(){location.reload()});
+    },20000);
+  </script>
+</body>
+</html>

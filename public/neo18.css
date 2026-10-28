@@ -1,0 +1,12 @@
+/* EDGORIA NEO 18 — evidence-based MT5 upload feedback */
+.eg18-receipt{margin:18px 0 16px;padding:20px 21px;background:linear-gradient(145deg,rgba(12,40,70,.74),rgba(11,19,44,.96));border:1px solid rgba(56,212,240,.35);border-radius:18px;box-shadow:0 12px 28px rgba(2,10,23,.16)}
+.eg18-receipt-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:15px}
+.eg18-receipt-head h3{font-size:1.2rem;margin:3px 0 5px;color:#edf7ff}.eg18-receipt-head p,.eg18-receipt-note{font-size:.82rem;color:#9cb6cf;line-height:1.6;margin:0}
+.eg18-tag,.eg18-verified{letter-spacing:.1em;font-weight:700;font-size:.64rem;color:#53dbea}.eg18-verified{white-space:nowrap;background:rgba(28,102,141,.16);padding:8px 10px;border-radius:20px;border:1px solid rgba(64,172,204,.22)}
+.eg18-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0 14px}
+.eg18-stat{min-width:0;border:1px solid rgba(108,163,216,.2);border-radius:13px;padding:16px 14px;display:flex;flex-direction:column;gap:8px;background:rgba(7,18,40,.73)}
+.eg18-stat span{font-size:.72rem;color:#a7c4dc}.eg18-stat strong{font-size:clamp(1.05rem,2vw,1.57rem);font-variant-numeric:tabular-nums;letter-spacing:-.03em;color:#e9f4ff;overflow-wrap:anywhere}.eg18-stat small{font-size:.68rem;color:#83a5c0;line-height:1.55}
+.eg18-green strong{color:#4be1c7}.eg18-red strong{color:#ff8295}.eg18-blue strong{color:#72befe}
+.eg18-receipt-note{border-top:1px solid rgba(108,163,216,.18);padding-top:12px}
+@media(max-width:1050px){.eg18-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.eg18-receipt{padding:14px}.eg18-receipt-head{flex-wrap:wrap}.eg18-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.eg18-stat{padding:12px 10px}.eg18-stat strong{font-size:1.05rem}}

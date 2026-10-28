@@ -1,0 +1,23 @@
+/* EDGORIA 5.0 premium visual layer. Source logic from NOVA 4.2 unchanged. */
+:root{--bg:#060d1b;--surface:#0b1729;--surface2:#0d1c31;--border:rgba(129,160,209,.14);--accent:#3369ee;--mint:#00dca9}
+html,body{background:#060d1b;color:#eaf1ff}body,.shell{font-family:'DM Sans',system-ui,sans-serif}
+.shell{background:radial-gradient(ellipse 48% 34% at 77% 0%,rgba(54,95,206,.14),transparent 78%),#060d1b!important}
+.shell .sidebar{background:#071222!important;border-right:1px solid #1b2a42!important}
+.shell .brand{display:flex;align-items:center;padding:26px 22px 29px!important}.brandmark,.shell .brandmark{display:none!important}
+.brandname,.shell .brandname{font-family:'Space Grotesk',sans-serif!important;font-size:23px!important;font-weight:600!important;letter-spacing:.17em!important;color:#fff!important}
+.brandname small,.shell .brandname small{font-size:9px!important;letter-spacing:.29em!important;color:#819bbd!important;margin-top:5px!important}
+.shell .navbtn{border:1px solid transparent!important;border-radius:11px!important;margin:3px 11px!important;color:#9faec6!important;min-height:43px!important;font-size:13px!important}
+.shell .navbtn:hover{transform:none!important;background:#142340!important;color:#fff!important}
+.shell .navbtn.active{background:linear-gradient(120deg,#2968ee,#153fad)!important;color:#fff!important;border-color:rgba(130,166,255,.24)!important;box-shadow:0 7px 24px rgba(17,66,175,.26)!important}
+.shell .topbar{background:rgba(7,17,33,.95)!important;border-bottom:1px solid #182a44!important;backdrop-filter:blur(18px)}.shell .workspace{background:transparent!important}
+.shell .signout-top{background:#0d1b30!important;border:1px solid #1b3150!important;border-radius:10px!important}.shell .navtitle{color:#6882a7!important;font-size:10px!important;letter-spacing:.17em!important}
+.eg42-dashboard{max-width:1700px!important}.eg42-dashboard .eg17-header h1{font-weight:650!important;letter-spacing:-.045em!important;color:#f4f7ff!important}
+.eg42-dashboard .eg17-header h1 em{background:linear-gradient(90deg,#a9c6ff,#7b9eff)!important;background-clip:text!important;-webkit-background-clip:text!important}
+.eg42-dashboard .eg17-hero{background:linear-gradient(145deg,#0d203a,#091628)!important;border:1px solid #223859!important;border-radius:15px!important;box-shadow:none!important}
+.eg42-dashboard .eg17-summary,.eg42-dashboard .eg17-surface,.eg42-dashboard .eg17-extra{background:#0b1729!important;border:1px solid var(--border)!important;border-radius:14px!important;box-shadow:none!important}
+.eg42-dashboard .eg17-summary:hover,.eg42-dashboard .eg17-surface:hover{border-color:#3e5a86!important}.eg42-dashboard .eg17-chart-unit{background:#101f36!important;color:#92b4ec!important}
+.eg42-review-strip{background:#0b1729!important;border:1px solid #263b5e!important;border-radius:14px!important}.eg42-review-sigil{background:#102b47!important;color:#84bdff!important;border-color:#2c507d!important}
+.eg42-review-cta,.shell .btn.primary{background:linear-gradient(112deg,#2d70f5,#2154c9)!important;border-color:#3c71db!important;color:#fff!important;border-radius:10px!important}
+.eg42-dashboard .tag.positive{color:#28e4b1!important}.eg42-journal,.shell .card{border-radius:14px}.shell .field{background:#09182c!important;border:1px solid #29405c!important;border-radius:10px!important}
+.shell .footer{color:#597392!important;border-top:1px solid #14233d!important}.login-art{background:radial-gradient(circle at 75% 22%,rgba(40,91,207,.26),transparent 50%),#061326!important}.login-aside{background:#081527!important}.login .brand{margin-bottom:52px}.login h1 em{color:#8cb4ff!important}
+:focus-visible{outline:2px solid #92b3ff!important;outline-offset:3px}@media(max-width:760px){.shell .brand{padding:18px!important}.eg42-dashboard .eg17-summary,.eg42-dashboard .eg17-surface{border-radius:12px!important}.eg42-review-strip{padding:14px!important}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}

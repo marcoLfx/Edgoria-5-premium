@@ -1,0 +1,100 @@
+/* EDGORIA NEO 13 — reference-matched launch design. No fictitious numbers or decorative interactions. */
+:root{--neo13-bg:#050d20;--neo13-panel:#091a34;--neo13-line:#1e4b78;--neo13-glow:#35eff5;--neo13-blue:#518eff;--neo13-red:#ff6d98}
+.neo13-analytics{font-variant-numeric:tabular-nums;padding-bottom:8px;min-width:0}
+.content:has(.neo13-analytics){background:radial-gradient(ellipse at 95% -15%,#203e8450,transparent 50%),radial-gradient(ellipse at 15% 42%,#0b417b19,transparent 58%),#061126}
+.workspace:has(.neo13-analytics){max-width:none!important;margin:0 auto;padding:25px clamp(16px,1.8vw,32px) 20px!important;width:100%}
+.neo13-analytics:before{content:'';position:absolute;pointer-events:none;opacity:.22;inset:100px 16px auto 30%;height:170px;background:linear-gradient(145deg,transparent 48%,#2d64cc35 48.2%,transparent 50%,#438ff314 60%,transparent 60.3%);z-index:0}
+.neo13-heading{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:0 8px;margin-bottom:20px;position:relative;z-index:1}
+.neo13-kicker{display:flex;align-items:center;gap:9px;font:800 10px 'DM Sans',sans-serif;letter-spacing:.2em;color:#5deff4;margin-bottom:6px}
+.neo13-kicker .neo-live-dot{width:6px;height:6px;flex:0 0 6px}
+.neo13-build{padding:5px 9px;background:#102b4c;border:1px solid #2b7593;border-radius:20px;color:#88d6f5;letter-spacing:.08em;font-size:9px;margin-left:9px}
+.neo13-heading h1{font:750 clamp(32px,3vw,52px)/1.05 'Space Grotesk','DM Sans',sans-serif;letter-spacing:-.055em;margin:0 0 9px;color:#f4faff}
+.neo13-heading h1 em{font-style:normal;background:linear-gradient(100deg,#35f8e5,#5fa1ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.neo13-heading p{font-size:12px;color:#adc3da;margin:0;max-width:620px;line-height:1.5}
+.neo13-analytics .neo-period{padding:6px;gap:4px;border-radius:12px;border-color:#2b628e;box-shadow:0 0 15px #1965ad1f,inset 0 1px #a8fff30f;background:#091d39}
+.neo13-analytics .neo-period-button{padding:9px 15px;min-height:37px;color:#b0cbea;border-radius:9px;font-size:11px}
+.neo13-analytics .neo-period-button.is-active{color:#f7feff;background:linear-gradient(110deg,#063e66,#126199);box-shadow:inset 0 0 0 1px #44e5fd,0 0 14px #37cbff5b;font-weight:800}
+.neo13-meta{position:relative;z-index:1;display:flex;align-items:center;gap:15px;flex-wrap:wrap;margin:0 0 16px;padding:8px 11px 8px 8px;border-bottom:1px solid #244466;color:#99b5cb;font-size:11px}
+.neo13-meta .neo13-meta-pill{border:1px solid #265379;padding:6px 10px;border-radius:8px;background:#0b2c3d;color:#cbf5f5;white-space:nowrap}
+.neo13-meta-pill i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#33f8ce;box-shadow:0 0 8px #3efbdd;margin-right:5px}
+.neo13-meta b{margin-left:4px}.neo13-meta-rule{margin-left:auto;color:#78a9c5;font-size:10px}
+.neo13-kpis{gap:12px;margin-bottom:14px}
+.neo13-kpis .neo-metric{min-height:142px;border-radius:12px;padding:15px 16px 18px;border:1px solid #2a5a8d;background:linear-gradient(125deg,#09243f 0%,#0d1934 68%,#111d41);box-shadow:0 0 17px #050e22,inset 0 1px #b6fcff18;overflow:hidden}
+.neo13-kpis .neo-metric:nth-child(1){border-color:#167d8d;box-shadow:0 0 16px #13f0e219,inset 0 1px #35f7d51d}
+.neo13-kpis .neo-metric:nth-child(2){border-color:#833a71;box-shadow:0 0 16px #ff5ba217,inset 0 1px #ffaeec16}
+.neo13-kpis .neo-metric:nth-child(3){border-color:#6550b8;box-shadow:0 0 16px #815ef519,inset 0 1px #a691ff16}
+.neo13-kpis .neo-metric:nth-child(4){border-color:#2267b5;box-shadow:0 0 16px #3ca1ff20,inset 0 1px #89c8ff1b}
+.neo13-kpis .neo-metric:before{inset:0 5% auto;height:2px;opacity:.9}
+.neo13-kpis .neo-metric-head{font-size:11px;color:#bdcfe4;gap:12px}
+.neo13-kpis .neo-metric-indicator{width:44px;height:44px;flex:0 0 44px;border-radius:12px;font-size:24px;background:#082f4c;box-shadow:inset 0 0 10px currentColor}
+.neo13-kpis .neo-metric-value{font-size:clamp(22px,2.15vw,33px);letter-spacing:-.06em;margin:6px 0 4px;padding-left:55px;white-space:nowrap}
+.neo13-kpis .neo-metric small{padding-left:55px;max-width:100%;font-size:10px;min-height:14px}
+.neo13-kpis .neo-metric-spark{width:37%;right:5px;bottom:2px;max-height:39px;opacity:.75;filter:drop-shadow(0 0 7px currentColor)}
+.neo13-primary-row{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr);gap:13px;margin-bottom:13px;align-items:stretch}
+.neo13-secondary-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:13px;align-items:stretch}
+.neo13-panel{min-width:0;position:relative;padding:21px 20px 16px;border:1px solid #286299;border-radius:13px;background:linear-gradient(155deg,#0b203c 0%,#08182f 78%);box-shadow:inset 0 1px #a7eaff19,0 9px 30px #020b1c9c;overflow:hidden}
+.neo13-panel:before{content:'';position:absolute;inset:0 8% auto;height:1px;background:linear-gradient(90deg,#47feff88,#3166dd33,transparent);pointer-events:none}
+.neo13-panel-header{display:flex;justify-content:space-between;align-items:start;gap:10px;margin-bottom:11px}
+.neo13-overline{font:800 9px 'DM Sans',sans-serif;color:#4cdff3;letter-spacing:.16em;margin-bottom:5px}
+.neo13-panel-header h3{font:700 clamp(15px,1.3vw,19px) 'Space Grotesk',sans-serif;color:#f0fbff;letter-spacing:-.025em;margin:0 0 4px}
+.neo13-panel-header p{font:400 10px/1.5 'DM Sans',sans-serif;color:#92abc9;margin:0}
+.neo13-panel-total{white-space:nowrap;text-align:right;font:700 clamp(17px,1.8vw,24px) 'Space Grotesk',sans-serif;letter-spacing:-.03em;margin:3px 0}
+.neo13-panel-total small{display:block;font:800 9px 'DM Sans';letter-spacing:.15em;color:#84b3c7;margin-top:5px}
+.neo13-unit{font-size:9px;white-space:nowrap;padding:6px 9px;color:#a9d8e9;background:#092644;border:1px solid #2d668e;border-radius:8px}
+.neo13-equity .neo-chart{max-height:262px}
+.neo13-equity .neo-chart-wrap{padding-top:7px}
+.neo13-session .neo-vbars{min-height:240px}
+.neo13-session .neo-vbar{height:224px}
+.neo13-session .neo-vbar-stage{height:158px}
+.neo13-session .neo-vbar-val{font-size:11px}
+.neo13-secondary-row .neo13-panel{padding:18px 16px 14px;min-height:279px}
+.neo13-secondary-row .neo13-panel-header{margin-bottom:20px}
+.neo13-secondary-row .neo13-panel-header h3{font-size:16px}
+.neo13-secondary-row .neo-horizontal-bars{gap:14px;min-height:0}
+.neo13-secondary-row .neo-hbar{grid-template-columns:minmax(60px,.9fr) minmax(35px,1.2fr) minmax(60px,auto);gap:8px;font-size:10px}
+.neo13-secondary-row .neo-hbar-track{height:12px}
+.neo13-secondary-row .neo-vbars{min-height:176px}
+.neo13-secondary-row .neo-vbar{height:171px}
+.neo13-secondary-row .neo-vbar-stage{height:109px}
+.neo13-secondary-row .neo-vbar-val{font-size:10px}
+.neo13-secondary-row .neo-vbar-name{font-size:9px}
+.neo13-bridge{display:flex;align-items:center;gap:18px;position:relative;padding:20px 22px;border:1px solid #1484a5;border-radius:15px;background:radial-gradient(ellipse at 89% 10%,#154d9477,transparent 55%),linear-gradient(108deg,#07304a,#0c1d3d 64%,#0a2553);box-shadow:0 0 20px #0dbeeb24,inset 0 1px #79fff934;overflow:hidden}
+.neo13-bridge:after{content:'';position:absolute;pointer-events:none;inset:auto 0 0 50%;height:70px;background:repeating-linear-gradient(90deg,#2fe2f922 0 1px,transparent 1px 22px);mask-image:linear-gradient(transparent,black);opacity:.3}
+.neo13-bridge-mark{width:58px;height:58px;display:grid;place-items:center;flex-shrink:0;border-radius:14px;color:#55f8f4;background:#0c4360;border:1px solid #3cfafa;box-shadow:0 0 24px #24e6fa37;font-size:39px}
+.neo13-bridge-copy{flex:1;min-width:0;position:relative;z-index:1}
+.neo13-bridge-eyebrow{color:#47dce4;font-size:9px;font-weight:800;letter-spacing:.14em}
+.neo13-bridge-copy h3{font:750 23px 'Space Grotesk';letter-spacing:-.05em;color:#f0fbff;margin:3px 0}
+.neo13-bridge-copy h3 span{color:#42e9fa}
+.neo13-bridge-copy p{color:#adcde3;font-size:11px;margin:0 0 9px;max-width:620px;line-height:1.5}
+.neo13-bridge-benefits{display:flex;gap:16px;flex-wrap:wrap;color:#87cbe1;font-size:10px}
+.neo13-bridge-actions{display:grid;gap:7px;min-width:191px;z-index:1}
+.neo13-bridge-actions .btn{min-height:39px;padding:7px 14px;font-size:11px}
+.neo13-disclaimer{font-size:10px;line-height:1.55;margin:11px 4px 2px;color:#8ca3ba}
+.neo13-analytics .neo-horizontal-bars,.neo13-analytics .neo-vbars{color:#d9eeff}
+.neo13-analytics .neo-vbar-bar{box-shadow:0 0 19px #34e9f866}
+.neo13-analytics .neo-vbar-bar.neo-neg{box-shadow:0 0 18px #f555af44}
+.neo13-analytics .neo-hbar-fill{background:linear-gradient(90deg,#2e9cf3,#42f5de);box-shadow:0 0 15px #42f4fa60}
+.neo13-analytics .neo-hbar-fill.neo-neg{background:linear-gradient(90deg,#bd467a,#ff72a2)}
+.neo13-analytics .neo-equity-path{stroke:#41eff1;stroke-width:3.4;filter:drop-shadow(0 0 7px #35e7ec)}
+.neo13-analytics .neo-chart{overflow:visible}
+.neo13-analytics .neo-axis-text{font-size:11px;fill:#94b7d1}
+.neo13-analytics .neo-gridline{stroke:#23527d;stroke-opacity:.56;stroke-dasharray:3 5}
+/* Navigation consistent with NEO 13, without changing auth or routing. */
+.sidebar .navbtn.active{background:linear-gradient(95deg,#09486a,#202b62);border:1px solid #4793fb;box-shadow:inset 3px 0 #30fbf3,0 0 22px #22aaff33;color:#aafdfa}
+.sidebar .brandmark{border-color:#28c8ed;background:linear-gradient(135deg,#082b4b,#23215b);box-shadow:0 0 14px #2be9e943}
+.sidebar-scrollrail{background:#173a5a55}.sidebar-scrollthumb{box-shadow:0 0 11px #35fff1;background:linear-gradient(#24f4f6,#6f89ff)}
+.topbar{border-color:#164f7b;box-shadow:0 1px 0 #65eeff1b}
+@media(max-width:1350px){.neo13-kpis .neo-metric-value,.neo13-kpis .neo-metric small{padding-left:0}.neo13-kpis .neo-metric-head{gap:8px}.neo13-kpis .neo-metric-indicator{height:37px;width:37px;flex-basis:37px}}
+@media(max-width:1120px){.neo13-primary-row{grid-template-columns:1fr}.neo13-secondary-row{grid-template-columns:repeat(2,minmax(0,1fr))}.neo13-secondary-row .neo13-monthly{grid-column:span 2}.neo13-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.neo13-heading{flex-wrap:wrap;gap:14px}.neo13-primary-row,.neo13-secondary-row{grid-template-columns:1fr}.neo13-secondary-row .neo13-monthly{grid-column:auto}.neo13-meta-rule{margin-left:0;width:100%}.neo13-bridge{flex-wrap:wrap}.neo13-bridge-actions{width:100%;min-width:0;grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.neo13-kpis{gap:8px}.neo13-kpis .neo-metric{min-height:135px;padding:11px}.neo13-kpis .neo-metric-value{font-size:clamp(17px,4vw,24px)}.neo13-kpis .neo-metric-head{font-size:10px}.neo13-kpis .neo-metric-indicator{display:none}.neo13-analytics .neo-period{max-width:100%;overflow:auto}.neo13-analytics .neo-period-button{padding:8px 10px}.neo13-heading h1{font-size:34px}.neo13-panel{padding:15px}.neo13-bridge-actions{grid-template-columns:1fr}.neo13-bridge-mark{display:none}}
+@media(prefers-reduced-motion:reduce){.neo13-analytics *, .neo13-analytics *:before,.neo13-analytics *:after{transition:none!important;animation:none!important}}
+
+/* EDGORIA NEO 13.1 — gestor de cuentas separado de MT5 Bridge */
+.mt5-account-manager{border:1px solid rgba(66,215,231,.28);box-shadow:0 12px 34px rgba(0,10,30,.2)}
+.mt5-account-item{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 0;border-top:1px solid rgba(135,191,221,.15)}
+.mt5-account-item:first-of-type{margin-top:14px}
+.mt5-account-name{color:#eafbff;font-size:15px;font-weight:750}
+.mt5-account-item .micro{margin:5px 0 0}
+.mt5-account-actions{display:flex;flex-wrap:wrap;gap:8px;flex-shrink:0}
+@media(max-width:680px){.mt5-account-item{align-items:stretch;flex-direction:column}.mt5-account-actions{width:100%}.mt5-account-actions button{flex:1}}

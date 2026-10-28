@@ -1,0 +1,13 @@
+{
+  "app": "EDGORIA",
+  "version": "4.2.0",
+  "release": "NOVA — claridad, revisión y producto",
+  "released": "2026-10-27",
+  "areas": [
+    "Dashboard",
+    "Analytics",
+    "Journal",
+    "Presentación pública"
+  ],
+  "backend_migration_required": false
+}

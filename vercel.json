@@ -1,0 +1,89 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "outputDirectory": "public",
+  "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    },
+    {
+      "source": "/app.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/v4-me",
+      "destination": "/api/v4?route=me"
+    },
+    {
+      "source": "/api/v4-admin-roles",
+      "destination": "/api/v4?route=admin-roles"
+    },
+    {
+      "source": "/api/v4-mt5-diagnostics",
+      "destination": "/api/v4?route=mt5-diagnostics"
+    },
+    {
+      "source": "/api/v4-file-upload",
+      "destination": "/api/v4?route=file-upload"
+    },
+    {
+      "source": "/api/v4-file-delete",
+      "destination": "/api/v4?route=file-delete"
+    },
+    {
+      "source": "/api/v4-access-management",
+      "destination": "/api/v4?route=access-management"
+    },
+    {
+      "source": "/api/mt5-connect",
+      "destination": "/api/mt5?route=connect"
+    },
+    {
+      "source": "/api/mt5-disconnect",
+      "destination": "/api/mt5?route=disconnect"
+    },
+    {
+      "source": "/api/mt5-ingest",
+      "destination": "/api/mt5?route=ingest"
+    },
+    {
+      "source": "/api/mt5-rotate",
+      "destination": "/api/mt5?route=rotate"
+    }
+  ]
+}
