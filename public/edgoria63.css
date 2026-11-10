@@ -1,0 +1,30 @@
+/* EDGORIA 6.3 — affiliate dashboard only. Does not alter trader/Admin layouts. */
+.eg63-overview{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;margin:16px 0}
+.eg63-overview .card,.eg63-columns .card{min-width:0}
+.eg63-hero h2{font-size:clamp(30px,4vw,48px);color:#f9c793;margin:12px 0;line-height:1.15}
+.eg63-hero h2 small{font-size:14px;color:#a5bbd2;font-weight:500}
+.eg63-hero .row{align-items:flex-start;gap:14px}
+.eg63-linkbox{background:#0d2538;border:1px solid #25547b;border-radius:12px;padding:14px;margin:16px 0}
+.eg63-linkbox input{font-size:13px;min-width:0;width:100%}
+.eg63-linkbox button{margin-top:8px}
+.eg63-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:19px}
+.eg63-kpis>div{border:1px solid #25435e;background:#0b2034;border-radius:12px;padding:16px;display:grid;gap:8px}
+.eg63-kpis small{font-size:12px;color:#8fb2d5}
+.eg63-kpis strong{font-size:clamp(23px,2vw,30px);letter-spacing:-.04em;color:#ecf6ff}
+.eg63-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px}
+.eg63-money{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.eg63-money>div{display:grid;gap:6px;border-radius:10px;background:#10283f;padding:12px;min-width:0}
+.eg63-money span{font-size:12px;color:#a3beda}.eg63-money strong{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eg63-bars{display:flex;align-items:flex-end;min-height:150px;height:150px;gap:6px;padding:14px 0 0}
+.eg63-day{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}
+.eg63-day span{width:100%;max-width:28px;min-height:5px;background:linear-gradient(180deg,#5ae8d0,#2877eb);border-radius:6px 6px 2px 2px}
+.eg63-day small{font-size:9px;color:#9bb8d6;white-space:nowrap}
+.eg63-table{overflow-x:auto}
+.eg63-table table{width:100%;border-collapse:collapse;text-align:left;min-width:530px}
+.eg63-table th,.eg63-table td{padding:12px 10px;border-bottom:1px solid #23405c;font-size:12px}
+.eg63-table th{color:#8dafcf;font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+.eg63-status{display:inline-block;border:1px solid #3a5974;border-radius:8px;padding:4px 9px;color:#bed0e4}
+.eg63-status.paid{color:#53e1ad;border-color:#23775f}.eg63-status.rejected{color:#f3a4a4;border-color:#813e4b}.eg63-status.approved{color:#8ac9fb}
+@media(max-width:1050px){.eg63-overview,.eg63-columns{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:540px){.eg63-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.eg63-money{grid-template-columns:1fr}.eg63-hero .row{flex-direction:column}.eg63-kpis>div{padding:12px}.eg63-day small{font-size:8px}}
+@media(prefers-reduced-motion:reduce){.eg63-bars *{transition:none!important}}

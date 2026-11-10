@@ -30,7 +30,20 @@ export async function rest(table,{method='GET',query='',body,prefer}={}){
  const res=await fetch(`${url}/rest/v1/${table}${query?`?${query}`:''}`,{
   method,headers:{apikey:key,...(key.startsWith('eyJ')?{Authorization:`Bearer ${key}`}:{ }),'Content-Type':'application/json',...(prefer?{Prefer:prefer}:{})},body:body===undefined?undefined:JSON.stringify(body)
  });
- if(!res.ok)throw Error(`Error seguro de base de datos (${res.status})`);
+ if(!res.ok){
+  // Log PostgreSQL error code only; never request bodies, credentials, raw error
+  // messages, query parameters or names/emails in server logs.
+  let dbCode='UNKNOWN';
+  try{const problem=await res.json();const code=String(problem?.code||'');
+      if(/^[A-Za-z0-9]{3,8}$/.test(code))dbCode=code;}catch{}
+  console.error('EDGORIA_DB_DIAGNOSTIC',{
+    operation:method,resource:String(table).split('/').slice(0,2).join('/'),httpStatus:res.status,dbCode
+  });
+  const error=new Error(`Error seguro de base de datos (${res.status})`);
+  error.code=dbCode==='23514'?'DB_CHECK_CONSTRAINT':'DATABASE_ERROR';
+  error.status=res.status;
+  throw error;
+ }
  const raw=await res.text();return raw?JSON.parse(raw):null;
 }
 // Privileged operation: delete a user from Supabase Auth (not a suspension).

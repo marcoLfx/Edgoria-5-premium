@@ -1,0 +1,18 @@
+{
+  "version": "6.3.0",
+  "files": {
+    "api/v4.js": "90f042de4b43f4cf5f3af37241cbcba30ca678d8502ff2c6e402a1ca56fd314d",
+    "server/supabase.js": "e25a2326ecbb6b64cdc19c32788183293a1b735232544431740cc2ffe2b0a39a",
+    "server/v63-partner-dashboard.js": "c93ee82e82812e8262deccc0edc63e831123eb1d7afac8547c880d71c3b0ceaf",
+    "public/app.js": "b52ad91ce3c8a732b72624dadb4e8c231ef3c8d698d24654726495e62fb16568",
+    "public/app.html": "217f6cdbc57a3c0f93133a492dff21a664b6aeefa48794df7647b124e63a81de",
+    "public/edgoria63.css": "4afb0eaec5103f25d374fa9331dafe7c940e6bba96cceee6813c74321eeec016",
+    "public/release.json": "e79e5efaa378bca552595464d4d8609d9a8b22619367c8ee339ecb51d4006197",
+    "vercel.json": "3796889e0741964602527a21c88c8a6f4d764921a54de58353e435ef7e204fad",
+    "supabase/edgoria_v63_affiliate_rate_fix.sql": "267a0a981f99c386786ca8fc991da1bdde6b509aac7b610e177c11bcec9426a5",
+    "tests/v63-affiliates.test.js": "605b84e5677e6805923c2a2bf29aeca83aca9c2eb4e719ada392fbd2dea6c411",
+    "INSTALAR_EDGORIA63.py": "2970df7c3ca3675dbd693aac5b219376eec41b7c2fb8a928cafa80065fb08cd3",
+    "INSTALAR_WINDOWS.bat": "d8008b5652325ef1e9090b95f6d482a212800324322403c8fafd1454212d2436",
+    "LEEME_EDGORIA_63.md": "60a568639d791e26ef9e3295c9c9138db8fcee94b32d00227d68c0fa4cf477a9"
+  }
+}

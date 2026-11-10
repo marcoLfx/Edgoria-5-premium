@@ -1,7 +1,7 @@
 {
   "app": "EDGORIA",
-  "version": "6.1.0",
-  "release": "Registro con permisos limitados, comprobantes privados, revisión de pagos y afiliados sin activación automática",
+  "version": "6.3.0",
+  "release": "Portal privado de partners: seguimiento de referidos y comisiones; compatibilidad de comisión 25/30%",
   "released": "2026-11-10",
   "areas": [
     "Landing",
@@ -20,6 +20,10 @@
     "affiliate-request",
     "manual-usdt-receipts",
     "private-admin-proof-review",
-    "manual-access-only"
+    "manual-access-only",
+    "private-partner-dashboard",
+    "affiliate-rate-check-25-30",
+    "aggregated-referral-metrics",
+    "commission-history"
   ]
 }
