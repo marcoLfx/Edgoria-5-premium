@@ -110,6 +110,14 @@ async function importSupabaseClient(){
 }
 async function init(){
   try{
+    // Legacy reset links used /app. Redirect the token BEFORE Supabase consumes the fragment.
+    const params=new URLSearchParams(location.search);
+    const hash=new URLSearchParams(location.hash.replace(/^#/,''));
+    if(params.get('type')==='recovery'||hash.get('type')==='recovery'||params.get('flow')==='recovery'){
+      const target=new URL('/reset-password',location.origin);
+      target.search=location.search;target.hash=location.hash;
+      location.replace(target.href);return;
+    }
     const ref=new URLSearchParams(location.search).get('ref');
     if(ref&&/^edg-[a-f0-9]{12}$/.test(ref))localStorage.setItem('edgoria_ref',JSON.stringify({code:ref,seen:Date.now()}));
     const response=await bootStage('Conectando con /api/config',()=>fetch('/api/config',{cache:'no-store'}),10000);
@@ -120,7 +128,6 @@ async function init(){
     sb=createClient(cfg.url,cfg.publishableKey,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}});
     cloudAvailable=true;
     const result=await bootStage('Verificando sesión de Supabase',()=>sb.auth.getUser(),11000);
-    if(location.hash.includes('type=recovery') && result?.data?.user){state.user=result.data.user;bootFinished();renderNewPassword();return}
     if(result?.data?.user){
       state.user=result.data.user;
       state.timezone=localStorage.getItem('edgoria_trading_tz_'+state.user.id)||DEFAULT_ZONE;
@@ -1073,7 +1080,7 @@ async function formSubmit(form){
   if(form.id==='recover-form'){
     if(!sb)throw Error('Autenticación no disponible');
     const email=String(values.email||'').trim();
-    const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/app'});
+    const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/reset-password'});
     if(error)throw error;
     renderAuth(false);notify('Si el correo está registrado, recibirás el enlace de recuperación.');return;
   }

@@ -33,6 +33,20 @@ export async function rest(table,{method='GET',query='',body,prefer}={}){
  if(!res.ok)throw Error(`Error seguro de base de datos (${res.status})`);
  const raw=await res.text();return raw?JSON.parse(raw):null;
 }
+// Privileged operation: delete a user from Supabase Auth (not a suspension).
+// Requires a server-only secret/service-role key and a verified administrator route.
+export async function deleteAuthUser(userId){
+ const {url,key}=env();
+ if(!/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(userId))throw Error('Invalid user ID');
+ const response=await fetch(`${url}/auth/v1/admin/users/${encodeURIComponent(userId)}`,{
+  method:'DELETE',headers:{apikey:key,...(key.startsWith('eyJ')?{Authorization:`Bearer ${key}`}:{})}
+ });
+ if(!response.ok){
+  if(response.status===409||response.status===500)throw Object.assign(new Error('No se pudo eliminar. Revisa objetos de Storage y referencias de la cuenta.'),{status:409});
+  throw Object.assign(new Error('No se pudo eliminar la cuenta de autenticación.'),{status:response.status===404?404:409});
+ }
+ return true;
+}
 export async function signedIn(request){
  const bearer=request.headers.get('authorization')||'';
  if(!/^Bearer [A-Za-z0-9._~-]{30,}$/.test(bearer)) return null;
