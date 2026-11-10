@@ -4,11 +4,22 @@
   "outputDirectory": "public",
   "cleanUrls": true,
   "headers": [
-    {"source":"/reset-password","headers":[{"key":"Cache-Control","value":"no-store, private"},{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
+    {
+      "source": "/reset-password",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, private"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
     {
       "source": "/admin",
       "headers": [
-    {"source":"/reset-password","headers":[{"key":"Cache-Control","value":"no-store, private"},{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
         {
           "key": "Cache-Control",
           "value": "no-store, private"
@@ -22,7 +33,6 @@
     {
       "source": "/(.*)",
       "headers": [
-    {"source":"/reset-password","headers":[{"key":"Cache-Control","value":"no-store, private"},{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
         {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
@@ -44,7 +54,6 @@
     {
       "source": "/app.js",
       "headers": [
-    {"source":"/reset-password","headers":[{"key":"Cache-Control","value":"no-store, private"},{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
         {
           "key": "Cache-Control",
           "value": "public, max-age=0, must-revalidate"
@@ -54,7 +63,6 @@
     {
       "source": "/(.*)",
       "headers": [
-    {"source":"/reset-password","headers":[{"key":"Cache-Control","value":"no-store, private"},{"key":"X-Robots-Tag","value":"noindex, nofollow"}]},
         {
           "key": "Strict-Transport-Security",
           "value": "max-age=31536000; includeSubDomains"
@@ -63,7 +71,10 @@
     }
   ],
   "rewrites": [
-    {"source":"/reset-password","destination":"/reset-password.html"},
+    {
+      "source": "/reset-password",
+      "destination": "/reset-password.html"
+    },
     {
       "source": "/admin",
       "destination": "/admin.html"
