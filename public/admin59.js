@@ -3,8 +3,9 @@ import {dateKey,longDate,monthName,shiftedMonth,monthCells,calendarSummary,perio
 const root=document.querySelector('#app'),notification=document.querySelector('#notifications');
 let sb=null,user=null,store={users:[],periods:[],audit:[],calendar_ready:false,access_enabled:false},busy=false;
 let view='overview',query='',statusFilter='all',showArchived=false,selectedDate=dateKey(new Date()),month=selectedDate.slice(0,7),selectedUser=null;
-const icons={overview:'▦',calendar:'▣',users:'♙',access:'◇',audit:'≡'};
-const tabs=[['overview','Resumen'],['calendar','Calendario'],['users','Usuarios'],['access','Accesos'],['audit','Auditoría']];
+let commercial=null,commercialError='';
+const icons={overview:'▦',calendar:'▣',users:'♙',access:'◇',audit:'≡',affiliates:'↗'};
+const tabs=[['overview','Resumen'],['calendar','Calendario'],['users','Usuarios'],['access','Accesos'],['affiliates','Afiliados'],['audit','Auditoría']];
 const validPeriod=p=>({...p,expires_at:p.ends_at});
 const live=p=>p?.status==='active'&&Date.parse(p.starts_at)<=Date.now()&&Date.parse(p.ends_at)>Date.now();
 const displayStatus=s=>({active:'Activo',expired:'Vencido',pending:'Pendiente',suspended:'Suspendido',archived:'Retirado',legacy:'Legado sin plazo',revoked:'Revocado',admin:'Administrador',scheduled:'Programado'})[s]||'—';
@@ -14,7 +15,7 @@ const name=id=>e(userDisplay(store.users.find(u=>u.user_id===id)||{email:'Usuari
 function toast(text){notification.textContent=text;notification.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>notification.classList.remove('show'),5000)}
 function rowList(items,cb,empty){return items.length?items.map(cb).join(''):`<div class="empty">${e(empty)}</div>`}
 function renderShell(content){
- const headings={overview:['Centro de control','Permisos y vencimientos sin depender de pagos'],calendar:['Calendario de accesos','Inicio y fin de cada periodo de prueba o mensualidad'],users:['Usuarios','Concede accesos, suspende o retira usuarios'],access:['Historial de accesos','Periodos emitidos por el administrador'],audit:['Auditoría','Movimientos administrativos registrados en el servidor']};
+ const headings={overview:['Centro de control','Permisos y vencimientos sin depender de pagos'],calendar:['Calendario de accesos','Inicio y fin de cada periodo de prueba o mensualidad'],users:['Usuarios','Concede accesos, suspende o retira usuarios'],access:['Historial de accesos','Periodos emitidos por el administrador'],audit:['Auditoría','Movimientos administrativos registrados en el servidor'],affiliates:['Afiliados','Referidos, primeras ventas y comisiones bajo control administrativo']};
  const [head,sub]=headings[view];
  root.innerHTML=`<div class="admin-layout"><aside class="admin-side" id="admin-side"><div class="brand"><img src="/favicon.svg" alt=""/><div><h1>EDGORIA</h1><small>ADMIN CONSOLE</small></div></div><div class="admin-badge">CONTROL PRIVADO</div><nav class="menu" aria-label="Navegación de administrador">${tabs.map(([id,text])=>`<button type="button" class="side-link ${view===id?'active':''}" data-view="${id}" aria-current="${view===id?'page':'false'}"><span aria-hidden="true">${icons[id]}</span> ${text}</button>`).join('')}</nav><div class="side-footer"><strong>Administrador</strong><small>${e(user?.email||'')}</small><button type="button" data-action="signout">Cerrar sesión</button></div></aside><main class="main"><header class="top"><div style="display:flex;align-items:center;gap:13px"><button class="mobile-toggle btn" data-action="menu" aria-label="Abrir menú">☰</button><div><h2>${e(head)}</h2><p>${e(sub)}</p></div></div><div class="top-right"><span class="chip">● Administrador</span><button type="button" data-action="refresh">↻ Actualizar</button></div></header>${store.setup_error?`<div class="alert" style="margin-top:22px">${e(store.setup_error)}</div>`:''}<section>${content}</section><footer>EDGORIA ADMIN · Los pagos externos y las activaciones se administran por separado · Los datos de trading permanecen privados.</footer></main></div>`;
 }
@@ -42,17 +43,53 @@ function audit(){const words={trial:'Prueba de 7 días',monthly:'Acceso mensual'
  const rows=[...store.audit].sort((a,b)=>Date.parse(b.occurred_at)-Date.parse(a.occurred_at));
  return `<div class="main-title"><div><div class="section-label">AUDITORÍA</div><h3>Historial administrativo</h3><p>Registro de concesiones, suspensiones y retiradas efectuadas por administradores.</p></div></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th></tr></thead><tbody>${rows.length?rows.map(a=>`<tr><td>${e(longDate(a.occurred_at))}</td><td>${name(a.user_id)}</td><td>${e(words[a.action]||a.action)}</td></tr>`).join(''):'<tr><td colspan="3" class="empty">No hay acciones registradas.</td></tr>'}</tbody></table></div>`;
 }
-function render(){renderShell(({overview:dashboard,calendar,users,access:accesses,audit}[view]||dashboard)())}
+
+// Separate commercial administration: verified sales are NOT access grants.
+function affiliatesView(){
+ if(!commercial)return `<div class="main-title"><div><div class="section-label">PROGRAMA PARTNERS</div><h3>Afiliados de EDGORIA</h3><p>El acceso de los traders se gestiona únicamente en Usuarios.</p></div></div><div class="alert">${e(commercialError||'Cargando información comercial')}</div>`;
+ const {partners=[],referrals=[],sales=[],commissions=[],profiles=[]}=commercial;
+ const profile=id=>profiles.find(p=>p.user_id===id)||{};
+ const usd=cents=>`US$${(Number(cents||0)/100).toFixed(2)}`;
+ const totals={approved:commissions.filter(x=>x.status==='approved').reduce((n,x)=>n+Number(x.commission_cents||0),0),pending:commissions.filter(x=>x.status==='pending').reduce((n,x)=>n+Number(x.commission_cents||0),0),paid:commissions.filter(x=>x.status==='paid').reduce((n,x)=>n+Number(x.commission_cents||0),0)};
+ return `<div class="main-title"><div><div class="section-label">INGRESOS Y ALIANZAS</div><h3>Afiliados y comisiones</h3><p>25% estándar o 30% partner especial, una sola comisión por el primer mes verificado. Ninguna venta activa cuentas.</p></div></div>
+ <div class="kpis"><article class="panel kpi"><span>Afiliados registrados</span><strong>${partners.length}</strong><small>${partners.filter(a=>a.status==='active').length} activos</small></article><article class="panel kpi aqua"><span>Referidos atribuidos</span><strong>${referrals.length}</strong><small>Registro por enlace</small></article><article class="panel kpi"><span>Comisiones pendientes</span><strong>${usd(totals.pending)}</strong><small>Aprobar tras verificación</small></article><article class="panel kpi"><span>Comisiones pagadas</span><strong>${usd(totals.paid)}</strong><small>${usd(totals.approved)} aprobadas</small></article></div>
+ <section class="panel" style="margin-bottom:20px"><div class="panel-top"><h4>Directorio de afiliados</h4></div>
+ <div class="table-wrap"><table><thead><tr><th>Afiliado</th><th>Código y referidos</th><th>Porcentaje</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${partners.length?partners.map(a=>{
+  const p=profile(a.user_id),count=referrals.filter(r=>r.affiliate_id===a.id).length;
+  return `<tr><td><strong>${e(p.full_name||p.email||a.user_id)}</strong><small>${e(p.email||'')}</small></td><td><code>${e(a.code)}</code><small>${count} referidos</small></td><td>${Number(a.rate_basis_points)/100}%</td><td>${e(a.status)}</td><td><div class="user-actions"><button class="btn small" data-partner-action="approve-affiliate" data-id="${e(a.id)}">Aprobar</button><button class="btn small" data-partner-action="suspend-affiliate" data-id="${e(a.id)}">Pausar</button><button class="btn small" data-partner-action="set-rate" data-rate="2500" data-id="${e(a.id)}">25%</button><button class="btn small" data-partner-action="set-rate" data-rate="3000" data-id="${e(a.id)}">30%</button></div></td></tr>`;
+ }).join(''):'<tr><td colspan="5" class="empty">No hay afiliados todavía.</td></tr>'}</tbody></table></div></section>
+ <section class="panel" style="margin-bottom:20px"><div class="panel-top"><h4>Registrar una venta previamente verificada</h4></div><p class="hero-note">Primero comprueba el pago fuera de EDGORIA. Este registro crea evidencia comercial y, si corresponde, una comisión. <b>No modifica los accesos.</b></p>
+ <form id="affiliate-sale-form" class="eg60-form"><label>Comprador<select name="buyer_id" class="select" required><option value="">Seleccionar usuario</option>${store.users.filter(u=>u.role!=='admin').map(u=>`<option value="${e(u.user_id)}">${e(userDisplay(u))} · ${e(u.email)}</option>`).join('')}</select></label><label>Importe verificado<select name="amount_cents" class="select" required><option value="1099">US$10.99 · lanzamiento</option><option value="1499">US$14.99 · regular</option></select></label><label>Referencia de pago verificada<input class="input" required minlength="10" maxlength="128" pattern="[A-Za-z0-9_.:-]{10,128}" name="payment_reference" placeholder="Referencia única (no claves privadas)"></label><label class="checkline"><input type="checkbox" name="confirmed" required> Confirmo que verifiqué el pago por separado</label><button class="btn primary" type="submit">Registrar venta, no activar acceso</button></form></section>
+ <section class="panel"><div class="panel-top"><h4>Comisiones por primera venta</h4></div><div class="table-wrap"><table><thead><tr><th>Afiliado</th><th>Comisión</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${commissions.length?commissions.map(c=>{
+ const a=partners.find(x=>x.id===c.affiliate_id),p=profile(a?.user_id);
+ return `<tr><td>${e(p.email||a?.code||'Sin referencia')}</td><td>${usd(c.commission_cents)} · ${Number(c.rate_basis_points)/100}%</td><td>${e(c.status)}</td><td><div class="user-actions">${c.status==='pending'?`<button class="btn small" data-commission-action="approve-commission" data-id="${e(c.id)}">Aprobar</button>`:''}${c.status==='approved'?`<button class="btn small primary" data-commission-action="mark-commission-paid" data-id="${e(c.id)}">Marcar pagada</button><button class="btn small" data-commission-action="reject-commission" data-id="${e(c.id)}">Rechazar</button>`:''}</div></td></tr>`;
+ }).join(''):'<tr><td colspan="4" class="empty">Aún no hay comisiones registradas.</td></tr>'}</tbody></table></div></section>`;
+}
+
+function render(){renderShell(({overview:dashboard,calendar,users,access:accesses,audit,affiliates:affiliatesView}[view]||dashboard)())}
 function accessMessage(msg){root.innerHTML=`<section class="login-wrap"><div class="login-card"><div class="brand"><img src="/favicon.svg" alt=""/><div><h1>EDGORIA</h1><small>ADMIN</small></div></div><h1>Acceso unificado</h1><p>${e(msg)}</p><a class="btn primary" href="/app">Iniciar sesión en EDGORIA →</a></div></section>`}
 async function getToken(){const {data:{session}}=await sb.auth.getSession();if(!session?.access_token)throw Error('Inicia sesión de nuevo');return session.access_token}
 async function api(){const token=await getToken();const r=await fetch('/api/admin?route=console',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||`No se pudo cargar administración (${r.status})`);return data}
 async function change(action,id,extra={}){const token=await getToken();const r=await fetch('/api/v4-access-management',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({action,user_id:id,...extra})});const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||'No se pudo ejecutar esta acción');return data}
-async function refresh(){if(busy)return;busy=true;try{store=await api();render()}finally{busy=false}}
+async function fetchCommercial(){
+ try{
+  const token=await getToken();const r=await fetch('/api/admin?route=affiliates',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});
+  const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||'No se pudo cargar Afiliados');
+  commercial=data;commercialError='';
+ }catch(err){commercial=null;commercialError=err.message||'Afiliados no disponibles'}
+}
+async function commercialAction(action,fields={}){
+ const token=await getToken();const r=await fetch('/api/admin?route=affiliates',{
+  method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+  body:JSON.stringify({action,...fields})
+ });const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||`No se pudo completar ${action}`);return data;
+}
+async function refresh(){if(busy)return;busy=true;try{store=await api();if(view==='affiliates')await fetchCommercial();render()}finally{busy=false}}
 function modal(id){const u=store.users.find(x=>x.user_id===id);if(!u||u.archived||u.role==='admin')return;selectedUser=u;const node=document.createElement('div');node.id='access-modal';node.className='overlay';node.innerHTML=`<section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="access-title"><div class="section-label">CONCEDER ACCESO</div><h3 id="access-title">${e(userDisplay(u))}</h3><p>${e(u.email)} · La activación no depende de pagos externos.</p><form id="access-form"><label>Duración<select class="select" name="kind" required><option value="trial">Prueba gratuita: 7 días</option><option value="monthly">Mensualidad: 1 mes desde la activación</option></select></label><p class="notice">La fecha de vencimiento se calculará en el servidor y aparecerá automáticamente en el calendario. Una prueba gratuita solo puede concederse una vez por usuario.</p><div class="actions"><button class="btn" type="button" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">Activar acceso</button></div><div class="error" id="access-error" role="alert"></div></form></section>`;document.body.appendChild(node)}
 function closeModal(){selectedUser=null;document.querySelector('#access-modal')?.remove()}
 root.addEventListener('click',async ev=>{
  const button=ev.target.closest('[data-view],button');if(!button)return;
- if(button.dataset.view){view=button.dataset.view;render();document.querySelector('#admin-side')?.classList.remove('open');return}
+ if(button.dataset.view){view=button.dataset.view;if(view==='affiliates')await fetchCommercial();render();document.querySelector('#admin-side')?.classList.remove('open');return}
  try{
   const act=button.dataset.action;
   if(act==='refresh')await refresh();
@@ -77,11 +114,30 @@ root.addEventListener('click',async ev=>{
     await refresh();toast('Cuenta eliminada de forma definitiva');
   }
   else if(button.dataset.restore){if(!confirm('¿Restaurar este usuario en estado suspendido?'))return;await change('restore-user',button.dataset.restore,{confirmation:'RESTORE_USER'});await refresh();toast('Usuario restaurado sin acceso; concede una prueba o mensualidad para habilitarlo')}
+  else if(button.dataset.partnerAction){
+    const action=button.dataset.partnerAction,rate=Number(button.dataset.rate);
+    if(action==='set-rate'&&!confirm(`¿Establecer una comisión de ${rate/100}% para futuras ventas?`))return;
+    await commercialAction(action,{id:button.dataset.id,...(action==='set-rate'?{rate_basis_points:rate}:{})});
+    await fetchCommercial();render();toast('Afiliado actualizado');
+  }
+  else if(button.dataset.commissionAction){
+    const action=button.dataset.commissionAction;
+    if(!confirm(action==='mark-commission-paid'?'¿Ya transferiste realmente esta comisión al afiliado?':'¿Confirmas la acción sobre esta comisión?'))return;
+    await commercialAction(action,{id:button.dataset.id,...(action==='mark-commission-paid'?{confirmation:'TRANSFER_VERIFIED'}:{})});
+    await fetchCommercial();render();toast('Comisión actualizada');
+  }
  }catch(err){toast(err.message||'No se pudo completar la acción')}
 });
 document.addEventListener('click',ev=>{if(ev.target?.id==='access-modal'||ev.target.closest?.('[data-action="close-modal"]'))closeModal()});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape')closeModal()});
-document.addEventListener('submit',async ev=>{if(ev.target.id!=='access-form')return;ev.preventDefault();const btn=ev.target.querySelector('[type=submit]');btn.disabled=true;try{
+document.addEventListener('submit',async ev=>{if(ev.target.id==='affiliate-sale-form'){
+  ev.preventDefault();const f=ev.target;const btn=f.querySelector('[type=submit]');btn.disabled=true;
+  try{const d=new FormData(f);if(!d.get('confirmed'))throw Error('Debes confirmar la verificación');
+    await commercialAction('verify-sale',{buyer_id:d.get('buyer_id'),amount_cents:Number(d.get('amount_cents')),payment_reference:d.get('payment_reference'),confirmation:'VERIFIQUE_EL_PAGO'});
+    await fetchCommercial();render();toast('Venta registrada sin modificar el acceso del usuario');
+  }catch(err){toast(err.message||'Error al registrar venta')}finally{btn.disabled=false}return;
+ }
+ if(ev.target.id!=='access-form')return;ev.preventDefault();const btn=ev.target.querySelector('[type=submit]');btn.disabled=true;try{
  const k=ev.target.elements.kind.value;await change(k==='trial'?'grant-trial':'grant-month',selectedUser.user_id);closeModal();await refresh();selectedDate=dateKey(new Date());month=selectedDate.slice(0,7);view='calendar';render();toast('Acceso registrado en calendario')
  }catch(err){const target=document.querySelector('#access-error');if(target)target.textContent=err.message;toast(err.message)}finally{btn.disabled=false}});
 root.addEventListener('input',ev=>{if(ev.target.id==='user-search'){query=ev.target.value;const pos=ev.target.selectionStart;render();const field=document.querySelector('#user-search');field?.focus();try{field?.setSelectionRange(pos,pos)}catch{}}});

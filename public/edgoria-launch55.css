@@ -26,3 +26,22 @@
 html{overflow-x:clip}
 .orb-one{left:0;width:min(800px,100vw)}
 .orb-two{right:0;width:min(680px,100vw)}
+/* EDGORIA 6.0: restrained integration visuals and affiliate section */
+.eg60-integration-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.eg60-integration-card{display:flex;align-items:center;gap:20px;min-height:158px;padding:24px;border-radius:20px;border:1px solid rgba(125,177,229,.18);background:linear-gradient(140deg,rgba(16,42,70,.62),rgba(9,23,42,.8))}
+.eg60-integration-card img{flex:none;width:70px;height:70px;object-fit:contain;opacity:.93}
+.eg60-integration-card h3{font-size:20px;margin:8px 0}
+.eg60-integration-card p{font-size:13px;line-height:1.7;color:#9FB6D1;margin:0}
+.eg60-status{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:#65E5D7}
+.eg60-status.upcoming{color:#A6B9E4}
+.eg60-affiliates-panel{display:grid;grid-template-columns:1.35fr .8fr;gap:48px;padding:44px;border-radius:28px;background:linear-gradient(120deg,rgba(22,48,84,.9),rgba(10,24,47,.94));border:1px solid rgba(124,182,240,.21)}
+.eg60-affiliates-panel h2{font-size:clamp(28px,3vw,44px);line-height:1.12;margin:16px 0}
+.eg60-affiliates-panel p{color:#A9BED6;line-height:1.65;margin:15px 0 22px}
+.eg60-affiliates-panel .button{margin:0 14px 10px 0}
+.eg60-affiliate-terms{font-size:12px;color:#9DD9EE;text-underline-offset:3px;display:inline-block}
+.eg60-affiliate-metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:center}
+.eg60-affiliate-metrics div{border:1px solid rgba(125,177,229,.17);background:rgba(5,17,36,.5);padding:20px;border-radius:18px}
+.eg60-affiliate-metrics small{display:block;color:#8EA8C9;margin-bottom:8px;font-size:11px}
+.eg60-affiliate-metrics strong{font-size:35px;color:#60ECDD;letter-spacing:-.04em}
+.eg60-affiliate-metrics p{grid-column:1/-1;font-size:12px}
+@media(max-width:750px){.eg60-integration-row,.eg60-affiliates-panel{grid-template-columns:1fr}.eg60-affiliates-panel{padding:24px;gap:16px}.eg60-integration-card{padding:19px;min-height:136px}.eg60-integration-card img{width:55px;height:55px}}

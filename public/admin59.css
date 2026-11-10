@@ -7,3 +7,10 @@
 .panel{box-shadow:0 11px 40px #020b1815}
 .side-link{font-size:13px}
 @media(max-width:850px){.toolbar{gap:8px}.checkline{order:3;width:100%}}
+/* EDGORIA 6.0 — Admin affiliate management */
+.eg60-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:end;margin-top:18px}
+.eg60-form label{display:flex;flex-direction:column;gap:8px;font-size:12px;color:#9fbad5}
+.eg60-form label.checkline{display:flex;align-items:center;flex-direction:row;gap:10px}
+.eg60-form .input,.eg60-form .select{width:100%;min-width:0;box-sizing:border-box}
+.eg60-form button{justify-self:start}
+@media(max-width:750px){.eg60-form{grid-template-columns:1fr}}

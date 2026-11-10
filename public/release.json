@@ -1,13 +1,8 @@
 {
   "app": "EDGORIA",
-  "version": "5.5.0",
-  "release": "Landing de lanzamiento original con navegación y hotfix Overview",
+  "version": "6.0.0-rc1",
+  "release": "Afiliados y comercialización manual sin activar accesos",
   "released": "2026-11-10",
-  "areas": [
-    "Dashboard",
-    "Analytics",
-    "Journal",
-    "Presentación pública"
-  ],
-  "backend_migration_required": false
+  "areas": ["Landing", "Dashboard", "Journal", "Analytics", "Strategy Lab", "Admin", "Afiliados"],
+  "backend_migration_required": true
 }
