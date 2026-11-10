@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const app=readFileSync(new URL('../public/app.js',import.meta.url),'utf8');
-const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
+const html=readFileSync(new URL('../public/app.html',import.meta.url),'utf8');
 const css=readFileSync(new URL('../public/edgoria52.css',import.meta.url),'utf8');
 test('EDGORIA 5.2 loads its own UI without replacing existing application imports',()=>{
  assert.match(html,/edgoria52\.css\?v=5\.2\.0/);
- assert.match(html,/app\.js\?v=5\.2\.0/);
+ assert.match(html,/app\.js\?v=5\.4\.0/);
  assert.match(app,/from '\.\/trading-day\.js'/);
  assert.match(app,/from '\.\/performance14\.js/);
 });

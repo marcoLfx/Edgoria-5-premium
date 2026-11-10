@@ -46,6 +46,10 @@
   ],
   "rewrites": [
     {
+      "source": "/app",
+      "destination": "/app.html"
+    },
+    {
       "source": "/api/v4-me",
       "destination": "/api/v4?route=me"
     },

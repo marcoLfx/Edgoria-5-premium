@@ -1,61 +1,71 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#070b16" />
-  <meta name="description" content="EDGORIA: tu diario privado para comprender el rendimiento, gestionar el riesgo y registrar tus decisiones." />
-  <title>EDGORIA 5.3 — Trading Intelligence</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/styles.css?v=17.0" />
-  <link rel="stylesheet" href="/neo13.css?v=17.0" />
-  <link rel="stylesheet" href="/neo14.css?v=17.0" />
-  <link rel="stylesheet" href="/neo15.css?v=17.0" />
-  <link rel="stylesheet" href="/neo16.css?v=17.0" />
-  <link rel="stylesheet" href="/neo17.css?v=17.0" />
-  <link rel="stylesheet" href="/neo18.css?v=18.0" />
-  <link rel="stylesheet" href="/neo181.css?v=18.1" />
-  <link rel="stylesheet" href="/edgoria31.css?v=3.1.1" />
-  <link rel="stylesheet" href="/edgoria311.css?v=3.1.2" />
-  <link rel="stylesheet" href="/edgoria312.css?v=3.1.2" />
-  <link rel="stylesheet" href="/nova42.css?v=4.2.0" />
-  <link rel="stylesheet" href="/edgoria-premium.css?v=5.0.1" />
-  <script type="module" src="/app.js?v=5.2.0"></script>
-  <link rel="stylesheet" href="/edgoria51.css?v=5.1.0" />
-  <link rel="stylesheet" href="/edgoria52.css?v=5.2.0" />
-  <link rel="stylesheet" href="/edgoria53.css?v=5.3.0" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071323">
+  <meta name="description" content="EDGORIA, tu espacio privado para entender tu historial de trading: journal MT5, análisis, gestión de riesgo y Strategy Lab. Tu proceso, en una sola vista.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="EDGORIA — Cada operación cuenta">
+  <meta property="og:description" content="Un journal para observar tus decisiones, comprender tus estadísticas y dar estructura a tu proceso como trader.">
+  <meta property="og:url" content="https://www.edgoriatradingjournal.com/">
+  <title>EDGORIA — Tu proceso, en una nueva dimensión</title>
+  <link rel="canonical" href="https://www.edgoriatradingjournal.com/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/edgoria-launch55.css?v=5.5.0">
+  <script type="module" src="/edgoria-launch55.js?v=5.5.0"></script>
 </head>
 <body>
-  <div id="root" aria-live="off"><div class="boot"><span class="spinner"></span><strong>EDGORIA</strong><span>Preparando tu espacio...</span></div></div>
-  <div id="toast" role="status" aria-live="polite"></div>
-  <script>
-    // Independent of the module loader: also catches missing /app.js or blocked imports.
-    window.__edgoriaBootState={step:'Cargando la aplicación',done:false};
-    // Capture top-level JavaScript failures without exposing session tokens or application data.
-    window.addEventListener('error',function(ev){
-      var state=window.__edgoriaBootState;
-      if(!state || state.done)return;
-      var file='archivo desconocido';
-      try{file=new URL(ev.filename,location.href).pathname.split('/').pop()||file}catch(e){}
-      var kind=ev.error?.name||'Error JavaScript';
-      if(!/^(ReferenceError|TypeError|SyntaxError|Error|RangeError)$/.test(kind))kind='Error JavaScript';
-      state.step='Error en '+file+(ev.lineno?':'+ev.lineno:'')+' ('+kind+')';
-    });
-    window.addEventListener('unhandledrejection',function(){
-      var state=window.__edgoriaBootState;
-      if(state && !state.done)state.step='Petición del navegador rechazada (consulta Console)';
-    });
-    window.setTimeout(function(){
-      var root=document.getElementById('root');
-      if(!root || !root.querySelector('.boot') || window.__edgoriaBootState.done)return;
-      var step=window.__edgoriaBootState.step;
-      root.innerHTML='<div class="setup-screen"><div class="setup-card"><div class="section-label">DIAGNÓSTICO DE INICIO</div><h1>EDGORIA está tardando en iniciar</h1><p id="boot-stage-detail"></p><p>La publicación está activa, pero una petición o el código del navegador todavía no termina de cargar. Puedes reintentar o comprobar si la API responde.</p><div class="row wrap"><button class="btn primary" id="boot-retry">Reintentar</button><a class="btn" href="/api/config" target="_blank" rel="noopener noreferrer">Verificar API</a></div><p class="micro" style="margin-top:16px">Si persiste, revisa la consola del navegador (F12 → Console). No compartas tokens de sesión.</p></div></div>';
-      document.getElementById('boot-stage-detail').textContent='Etapa pendiente: '+step;
-      document.getElementById('boot-retry').addEventListener('click',function(){location.reload()});
-    },20000);
-  </script>
-</body>
-</html>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+  <div class="ambient-orb orb-one" aria-hidden="true"></div><div class="ambient-orb orb-two" aria-hidden="true"></div>
+  <header class="site-header" id="inicio"><div class="header-wrap container">
+    <a href="/" class="brand" aria-label="EDGORIA, ir al inicio"><img src="/favicon.svg" alt="" width="39" height="39"><span class="brand-name">EDGORIA<small>TRADING INTELLIGENCE</small></span></a>
+    <nav class="nav-desktop" aria-label="Principal"><a href="#plataforma">Plataforma</a><a href="#funciones">Funciones</a><a href="#metodo">Cómo funciona</a><a href="#seguridad">Seguridad</a><a href="#preguntas">FAQ</a></nav>
+    <div class="header-actions"><a class="text-link" href="/app">Iniciar sesión</a><a class="button button-primary button-small" href="/app?register=1">Crear cuenta <span aria-hidden="true">↗</span></a><button id="nav-toggle" class="nav-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobile-menu"><span></span><span></span><span></span></button></div>
+  </div>
+  <nav class="nav-mobile" id="mobile-menu" aria-label="Menú móvil" hidden><a href="#plataforma">Plataforma</a><a href="#funciones">Funciones</a><a href="#metodo">Cómo funciona</a><a href="#seguridad">Seguridad</a><a href="#preguntas">Preguntas frecuentes</a><a href="/app">Iniciar sesión</a><a class="mobile-register" href="/app?register=1">Crear cuenta ↗</a></nav>
+  </header>
+  <main id="main">
+    <section class="hero container" aria-labelledby="hero-title">
+      <div class="hero-aura" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="status-pulse" aria-hidden="true"></span> TU HISTORIAL. TU PROCESO. TU EVOLUCIÓN.</div>
+        <h1 id="hero-title">Cada operación cuenta.<br><span class="gradient-text">Cada decisión enseña.</span></h1>
+        <p class="hero-description">Deja de perderte entre hojas de cálculo. Con EDGORIA puedes revisar tus operaciones, entender tus métricas y ordenar tus estrategias en un solo espacio.</p>
+        <div class="hero-buttons"><a href="/app?register=1" class="button button-primary">Comenzar con EDGORIA <span aria-hidden="true">↗</span></a><a href="#plataforma" class="button button-secondary"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4z"/></svg> Explorar la plataforma</a></div>
+        <p class="hero-footnote"><span aria-hidden="true">✦</span> Journal y análisis. No ejecuta órdenes ni genera señales de inversión.</p>
+        <div class="hero-quick"><span>HISTORIAL MT5</span><i></i><span>ESTRATEGIAS</span><i></i><span>RISK WATCH</span><i></i><span>ANALYTICS</span></div>
+      </div>
+      <div class="hero-visual" aria-label="Vista ilustrativa de la plataforma EDGORIA">
+        <div class="preview-outer"><div class="preview-top"><div class="preview-dots" aria-hidden="true"><b></b><b></b><b></b></div><span>EDGORIA <em>/ OVERVIEW</em></span><span class="preview-mark">DEMO VISUAL</span></div>
+          <div class="preview-inner"><aside class="preview-side" aria-hidden="true"><div class="preview-mini-brand"><img src="/favicon.svg" alt=""><span>EDGORIA</span></div><div class="mini-nav selected"><span class="mini-symbol">◫</span> Overview</div><div class="mini-nav"><span class="mini-symbol">▤</span> Journal</div><div class="mini-nav"><span class="mini-symbol">▥</span> Analytics</div><div class="mini-nav"><span class="mini-symbol">◈</span> Strategy Lab</div><div class="preview-divider"></div><div class="mini-nav"><span class="mini-symbol">◎</span> Mis Cuentas</div></aside>
+            <div class="preview-workspace"><div class="preview-heading"><div><span class="micro-label">TU CENTRO DE CONTROL</span><strong>Overview</strong><small>Todo lo esencial, en una sola vista.</small></div><span class="preview-period">30 DÍAS</span></div>
+              <div class="preview-kpis"><div><small>Net P&L</small><strong>—</strong><span>Historial cerrado</span></div><div><small>Win Rate</small><strong>—</strong><span>Operaciones</span></div><div><small>Profit Factor</small><strong>—</strong><span>Rendimiento</span></div><div><small>RR Promedio</small><strong>—</strong><span>Riesgo registrado</span></div></div>
+              <div class="preview-data"><div class="preview-line"><div class="widget-head"><b>Curva de capital</b><span>Vista ilustrativa</span></div><svg viewBox="0 0 460 170" role="img" aria-label="Gráfico conceptual de una curva de rendimiento, sin datos reales"><defs><linearGradient id="lineFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4de0dd" stop-opacity=".22"/><stop offset="1" stop-color="#4de0dd" stop-opacity="0"/></linearGradient><linearGradient id="lineStroke" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#55e9dd"/><stop offset="1" stop-color="#81a2ff"/></linearGradient></defs><g stroke="#344c66" stroke-opacity=".40" stroke-dasharray="4 6"><path d="M0 40H460M0 80H460M0 120H460M75 5V150M160 5V150M245 5V150M330 5V150M415 5V150"/></g><path d="M0 130L36 119L64 126L93 95L121 102L151 88L183 105L211 69L244 79L277 64L309 70L339 36L367 53L399 40L428 49L460 20V164H0Z" fill="url(#lineFill)"/><path d="M0 130L36 119L64 126L93 95L121 102L151 88L183 105L211 69L244 79L277 64L309 70L339 36L367 53L399 40L428 49L460 20" fill="none" stroke="url(#lineStroke)" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/><circle cx="460" cy="20" r="5" fill="#83c3ff"/></svg></div>
+              <div class="preview-mini-stats"><div class="widget-head"><b>Revisión</b><span>Jornada</span></div><div class="progress-bar"><span style="width:63%"></span></div><p>Importa tu historial para ver tus resultados.</p><div class="preview-mini-list"><span>Diario</span><b>Notas y etiquetas</b></div><div class="preview-mini-list"><span>Estrategias</span><b>Playbooks</b></div><div class="preview-mini-list"><span>Riesgo</span><b>Límites</b></div></div></div>
+            </div>
+          </div>
+        </div><p class="illustration-note">Vista conceptual de interfaz. Las cifras se muestran al importar operaciones reales.</p>
+      </div>
+    </section>
+    <section class="trust-band" aria-label="Áreas de EDGORIA"><div class="container trust-row"><span>UN ESPACIO PARA TODO TU PROCESO</span><div>MT5 <b>◆</b> JOURNAL <b>◆</b> ANALYTICS <b>◆</b> STRATEGY LAB <b>◆</b> RISK WATCH</div></div></section>
+    <section class="section container" id="plataforma" aria-labelledby="platform-title"><div class="section-heading reveal"><div class="eyebrow">DISEÑADO PARA ENTENDER</div><h2 id="platform-title">De un historial de operaciones a una <span class="gradient-text">visión más clara.</span></h2><p>Los datos son útiles cuando puedes entenderlos. EDGORIA organiza lo importante primero y deja el detalle a un clic.</p></div>
+      <div class="experience-grid"><div class="experience-copy reveal"><div class="switch-label">EXPLORA LA PLATAFORMA</div><div class="feature-tabs" role="tablist" aria-label="Explorar funciones de EDGORIA"><button type="button" role="tab" aria-selected="true" id="tab-overview" aria-controls="panel-feature" data-feature="overview"><span>01</span> Overview <b>↗</b></button><button type="button" role="tab" aria-selected="false" id="tab-journal" aria-controls="panel-feature" tabindex="-1" data-feature="journal"><span>02</span> Journal <b>↗</b></button><button type="button" role="tab" aria-selected="false" id="tab-analytics" aria-controls="panel-feature" tabindex="-1" data-feature="analytics"><span>03</span> Analytics <b>↗</b></button><button type="button" role="tab" aria-selected="false" id="tab-strategy" aria-controls="panel-feature" tabindex="-1" data-feature="strategy"><span>04</span> Strategy Lab <b>↗</b></button></div></div>
+      <div class="feature-display reveal" id="panel-feature" role="tabpanel" aria-labelledby="tab-overview" tabindex="0"><div class="feature-display-top"><span id="feature-display-code">01 / VISIÓN GENERAL</span><span class="small-chip">EDGORIA WORKSPACE</span></div><div class="feature-icon" aria-hidden="true" id="feature-icon">◫</div><h3 id="feature-title">Tu jornada, sin ruido.</h3><p id="feature-body">Consulta P&L, win rate, profit factor, curva de capital y los resultados relevantes sin perseguir indicadores por toda la pantalla.</p><div class="display-bullets" id="feature-bullets"><span>Resumen compacto</span><span>Operaciones cerradas</span><span>Vista por cuenta</span></div><a class="feature-cta" href="/app">Abrir plataforma <span aria-hidden="true">↗</span></a></div></div>
+    </section>
+    <section class="section features-section" id="funciones"><div class="container"><div class="section-heading centered reveal"><div class="eyebrow">LO ESENCIAL, BIEN HECHO</div><h2>Menos pantallas. <span class="gradient-text">Más criterio.</span></h2><p>Una plataforma construida para documentar, revisar y aprender de tu propia actividad.</p></div>
+      <div class="bento-grid"><article class="bento-card wide reveal"><div class="bento-head"><span class="bento-icon">▤</span><span>JOURNAL MT5</span></div><h3>Tu historial deja de estar disperso.</h3><p>Importa reportes compatibles y accede a tus operaciones, notas y contexto de cada sesión, sin sustituir los registros originales.</p><div class="bento-visual timeline-visual" aria-hidden="true"><div class="timeline-row"><i></i><span>Reporte MT5</span><b>Archivo</b></div><div class="timeline-row"><i></i><span>Operaciones cerradas</span><b>Journal</b></div><div class="timeline-row"><i></i><span>Revisión de jornada</span><b>Insights</b></div></div></article>
+      <article class="bento-card reveal"><div class="bento-head"><span class="bento-icon">▥</span><span>ANALYTICS</span></div><h3>Detecta patrones con evidencia.</h3><p>Analiza horarios, símbolos, consistencia y resultados según la información disponible.</p><div class="bento-visual heatmap" aria-hidden="true"></div></article>
+      <article class="bento-card reveal"><div class="bento-head"><span class="bento-icon">◈</span><span>STRATEGY LAB</span></div><h3>Define tus reglas. Revísalas.</h3><p>Organiza tus estrategias en playbooks para revisar cómo las ejecutas a lo largo del tiempo.</p><div class="bento-visual rules-visual" aria-hidden="true"><div><i>✓</i> Condiciones de entrada</div><div><i>✓</i> Gestión del riesgo</div><div><i>✓</i> Revisión posterior</div></div></article>
+      <article class="bento-card wide reveal"><div class="bento-head"><span class="bento-icon">◇</span><span>RISK WATCH + CUENTAS</span></div><h3>El contexto importa tanto como el resultado.</h3><p>Consulta métricas de riesgo basadas en operaciones cerradas y organiza tus cuentas desde un mismo espacio. No sustituye las reglas oficiales de tu firma.</p><div class="bento-visual risk-visual" aria-hidden="true"><span>RIESGO DEFINIDO</span><div class="risk-track"><i></i></div><span>DISCIPLINA DOCUMENTADA</span><div class="risk-track alt"><i></i></div></div></article>
+      </div>
+    </div></section>
+    <section class="section process-section container" id="metodo"><div class="section-heading reveal"><div class="eyebrow">UN PROCESO SENCILLO</div><h2>De tus datos a <span class="gradient-text">mejores preguntas.</span></h2><p>No necesitas registrar cada detalle dos veces. Empieza por tu historial y construye una rutina útil de revisión.</p></div><div class="steps-grid"><div class="step-card reveal"><span>01</span><h3>Accede a tu espacio</h3><p>Registra tu cuenta y completa la activación correspondiente para entrar al journal privado.</p></div><div class="step-card reveal"><span>02</span><h3>Importa tu historial</h3><p>Carga un reporte MT5 compatible o utiliza las conexiones habilitadas para tu cuenta.</p></div><div class="step-card reveal"><span>03</span><h3>Revisa y documenta</h3><p>Explora las métricas, registra el contexto y contrasta tu ejecución con tus estrategias.</p></div></div></section>
+    <section class="section security-section" id="seguridad"><div class="container security-grid"><div class="security-copy reveal"><div class="eyebrow">ENFOQUE PRIVADO</div><h2>Tu historia de trading es tuya. <span class="gradient-text">Tu espacio también.</span></h2><p>EDGORIA utiliza autenticación con Supabase y controles de acceso por usuario. La disponibilidad de integraciones depende de la configuración y permisos correspondientes.</p><div class="security-points"><span><b>01</b> Sesión privada y cuenta personal</span><span><b>02</b> Datos de operaciones organizados</span><span><b>03</b> Sin ejecución de órdenes de trading</span></div></div><div class="security-visual reveal"><div class="security-center"><span class="lock-icon" aria-hidden="true">♢</span><b>PRIVATE WORKSPACE</b><small>EDGORIA / SECURE ACCESS</small></div><div class="security-orbit orbit-a"></div><div class="security-orbit orbit-b"></div><span class="security-note top">AUTHENTICATION</span><span class="security-note bottom">ACCOUNT ISOLATION</span></div></div></section>
+    <section class="section container" id="preguntas"><div class="section-heading reveal"><div class="eyebrow">ANTES DE COMENZAR</div><h2>Preguntas frecuentes.</h2><p>Lo que necesitas saber antes de utilizar EDGORIA.</p></div><div class="faq-list"><details class="reveal"><summary>¿EDGORIA es un broker o ejecuta operaciones?</summary><p>No. EDGORIA es un journal de trading: organiza y analiza información histórica. No ejecuta operaciones ni genera señales de compra o venta.</p></details><details class="reveal"><summary>¿Puedo importar operaciones de MetaTrader 5?</summary><p>Sí, mediante archivos compatibles de historial MT5. La sincronización automática requiere que la conexión correspondiente esté configurada y habilitada.</p></details><details class="reveal"><summary>¿Qué sucede si todavía no tengo operaciones importadas?</summary><p>Verás un estado vacío con métricas pendientes. Las cifras del dashboard se calculan a partir del historial disponible, no de datos simulados.</p></details><details class="reveal"><summary>¿Puedo utilizar Strategy Lab?</summary><p>Strategy Lab forma parte del espacio privado de EDGORIA para documentar y revisar reglas de estrategias. Las funciones visibles dependen de la versión habilitada en tu cuenta.</p></details><details class="reveal"><summary>¿Cómo accedo después de registrarme?</summary><p>Desde “Iniciar sesión”. Puede requerirse confirmación de correo y activación administrativa para habilitar el acceso.</p></details></div></section>
+    <section class="closing container"><div class="closing-glow" aria-hidden="true"></div><div class="eyebrow">EDGORIA / TRADING INTELLIGENCE</div><h2>Tu historia ya está escrita.<br><span class="gradient-text">Empieza a comprenderla.</span></h2><p>Reúne historial, estadísticas y estrategias en un entorno diseñado para enfocarte en lo que importa.</p><div class="closing-ctas"><a href="/app?register=1" class="button button-primary">Crear mi cuenta <span aria-hidden="true">↗</span></a><a href="/app" class="button button-secondary">Ya tengo una cuenta</a></div></section>
+  </main>
+  <footer class="site-footer"><div class="container footer-inner"><a class="brand footer-brand" href="/"><img src="/favicon.svg" alt="" width="34" height="34"><span class="brand-name">EDGORIA<small>TRADING INTELLIGENCE</small></span></a><p>Una plataforma de documentación y análisis de trading. Sin promesas de resultados.</p><nav aria-label="Legal y acceso"><a href="/privacidad.html">Privacidad</a><a href="/terminos.html">Términos</a><a href="/app">Iniciar sesión</a></nav></div><div class="container copyright">© 2026 EDGORIA. Todos los derechos reservados.</div></footer>
+</body></html>

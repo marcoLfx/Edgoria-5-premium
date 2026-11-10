@@ -39,7 +39,10 @@ test('mt5 rejects unknown routes and GET ingestion',async()=>{
 test('secrets not copied into client or rewrite destinations',()=>{
  const app=readFileSync(new URL('../public/app.js',import.meta.url),'utf8');
  assert.doesNotMatch(app,/sb_secret_[A-Za-z0-9_-]{10,}|eyJhbGciOi[A-Za-z0-9_-]{20,}/);
- for(const rewrite of conf.rewrites) assert.match(rewrite.destination,/^\/api\/(v4|mt5)\?route=[a-z0-9-]+$/);
+ for(const rewrite of conf.rewrites) {
+  if(rewrite.source==='/app'){assert.equal(rewrite.destination,'/app.html');continue;}
+  assert.match(rewrite.destination,/^\/api\/(v4|mt5)\?route=[a-z0-9-]+$/);
+ }
 });
 
 test('dispatch works if Vercel preserves original request pathname',async()=>{
