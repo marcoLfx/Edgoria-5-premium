@@ -39,16 +39,20 @@ export async function userContext(req){
     const raw=await response.text();return raw?JSON.parse(raw):null;
   };
   if(!user.email_confirmed_at)throw bad('Confirma primero tu correo electrónico.',403,'EMAIL_UNCONFIRMED');
-  const grants=await rest('edgoria_v4_access_grants',{query:`user_id=eq.${user.id}&select=access_status,trial_ends_at&limit=1`});
-  if(grants?.[0]?.access_status==='suspended')throw bad('Esta cuenta está suspendida. Contacta al administrador.',403,'ACCESS_DISABLED');
-  if(grants?.[0]?.access_status!=='active')throw bad('Tu correo está confirmado. Falta la aprobación del administrador.',403,'ACCESS_PENDING');
-  if(process.env.EDGORIA_ENFORCE_PAID_ACCESS==='1'){
-    const ownRoles=await rest('edgoria_v4_roles',{query:`user_id=eq.${user.id}&select=role&limit=1`});
-    const isAdmin=user.id===String(process.env.EDGORIA_ADMIN_USER_ID||'')||ownRoles?.[0]?.role==='admin';
-    if(!isAdmin){
-    const sub=await rest('edgoria_manual_subscriptions',{query:`user_id=eq.${user.id}&status=eq.active&select=expires_at&limit=1`});
-    const courtesy=grants?.[0]?.trial_ends_at&&Date.parse(grants[0].trial_ends_at)>Date.now();
-    if(!courtesy&&(!sub?.length||Date.parse(sub[0].expires_at)<=Date.now()))throw bad('Tu membresía requiere activación o renovación',403,'SUBSCRIPTION_REQUIRED');
+  // Identity first: an administrator is NOT a paid trader account.
+  // Only the verified auth UUID or a server-readable DB role can grant admin status.
+  // Never trust JWT user_metadata, a query string, or client-side role flags.
+  const adminByUid=user.id===String(process.env.EDGORIA_ADMIN_USER_ID||'');
+  const ownRoles=adminByUid?[]:await rest('edgoria_v4_roles',{query:`user_id=eq.${user.id}&select=role&limit=1`});
+  const isAdmin=adminByUid||ownRoles?.[0]?.role==='admin';
+  if(!isAdmin){
+    const grants=await rest('edgoria_v4_access_grants',{query:`user_id=eq.${user.id}&select=access_status,trial_ends_at&limit=1`});
+    if(grants?.[0]?.access_status==='suspended')throw bad('Esta cuenta está suspendida. Contacta al administrador.',403,'ACCESS_DISABLED');
+    if(grants?.[0]?.access_status!=='active')throw bad('Tu correo está confirmado. Falta la aprobación del administrador.',403,'ACCESS_PENDING');
+    if(process.env.EDGORIA_ENFORCE_PAID_ACCESS==='1'){
+      const sub=await rest('edgoria_manual_subscriptions',{query:`user_id=eq.${user.id}&status=eq.active&select=expires_at&limit=1`});
+      const courtesy=grants?.[0]?.trial_ends_at&&Date.parse(grants[0].trial_ends_at)>Date.now();
+      if(!courtesy&&(!sub?.length||Date.parse(sub[0].expires_at)<=Date.now()))throw bad('Tu membresía requiere activación o renovación',403,'SUBSCRIPTION_REQUIRED');
     }
   }
 

@@ -222,7 +222,7 @@ async function ensureProfile(){
 async function loadIdentity(){
  state.role='trader';state.personalJournalLoaded=false;state.profile=null;state.access=null;
  try{const {data:{session}}=await sb.auth.getSession();const res=await fetch('/api/v4-me',{headers:{Authorization:'Bearer '+session.access_token}});if(!res.ok){const detail=await res.json().catch(()=>({}));const err=new Error(detail.error||'No se pudo validar tu acceso.');err.code=detail.code;throw err;}
- const data=await res.json();state.role=data.role||'trader';state.personalJournalLoaded=false;state.profile=data.profile||null;state.access=data.access||null;if(data.access?.access_status!=='active')throw Object.assign(new Error('Acceso pendiente de autorización'),{code:'ACCESS_PENDING'});
+ const data=await res.json();state.role=data.role||'trader';state.personalJournalLoaded=false;state.profile=data.profile||null;state.access=data.access||null;if(state.role!=='admin'&&data.access?.access_status!=='active')throw Object.assign(new Error('Acceso pendiente de autorización'),{code:'ACCESS_PENDING'});
  state.view=state.role==='admin'?'admin':state.role==='partner'?'affiliates':'dashboard';
  }catch(e){
   // Preserve structured 403 codes: a confirmed registration MUST see the pending
