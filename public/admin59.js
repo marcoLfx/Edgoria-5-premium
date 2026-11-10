@@ -4,8 +4,9 @@ const root=document.querySelector('#app'),notification=document.querySelector('#
 let sb=null,user=null,store={users:[],periods:[],audit:[],calendar_ready:false,access_enabled:false},busy=false;
 let view='overview',query='',statusFilter='all',showArchived=false,selectedDate=dateKey(new Date()),month=selectedDate.slice(0,7),selectedUser=null;
 let commercial=null,commercialError='';
-const icons={overview:'▦',calendar:'▣',users:'♙',access:'◇',audit:'≡',affiliates:'↗'};
-const tabs=[['overview','Resumen'],['calendar','Calendario'],['users','Usuarios'],['access','Accesos'],['affiliates','Afiliados'],['audit','Auditoría']];
+let paymentQueue=null,paymentError='';
+const icons={overview:'▦',calendar:'▣',users:'♙',access:'◇',audit:'≡',payments:'▤',affiliates:'↗'};
+const tabs=[['overview','Resumen'],['calendar','Calendario'],['users','Usuarios'],['access','Accesos'],['audit','Auditoría'],['payments','Comprobantes'],['affiliates','Afiliados']];
 const validPeriod=p=>({...p,expires_at:p.ends_at});
 const live=p=>p?.status==='active'&&Date.parse(p.starts_at)<=Date.now()&&Date.parse(p.ends_at)>Date.now();
 const displayStatus=s=>({active:'Activo',expired:'Vencido',pending:'Pendiente',suspended:'Suspendido',archived:'Retirado',legacy:'Legado sin plazo',revoked:'Revocado',admin:'Administrador',scheduled:'Programado'})[s]||'—';
@@ -15,11 +16,12 @@ const name=id=>e(userDisplay(store.users.find(u=>u.user_id===id)||{email:'Usuari
 function toast(text){notification.textContent=text;notification.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>notification.classList.remove('show'),5000)}
 function rowList(items,cb,empty){return items.length?items.map(cb).join(''):`<div class="empty">${e(empty)}</div>`}
 function renderShell(content){
- const headings={overview:['Centro de control','Permisos y vencimientos sin depender de pagos'],calendar:['Calendario de accesos','Inicio y fin de cada periodo de prueba o mensualidad'],users:['Usuarios','Concede accesos, suspende o retira usuarios'],access:['Historial de accesos','Periodos emitidos por el administrador'],audit:['Auditoría','Movimientos administrativos registrados en el servidor'],affiliates:['Afiliados','Referidos, primeras ventas y comisiones bajo control administrativo']};
+ const headings={overview:['Centro de control','Permisos y vencimientos sin depender de pagos'],calendar:['Calendario de accesos','Inicio y fin de cada periodo de prueba o mensualidad'],users:['Usuarios','Concede accesos, suspende o retira usuarios'],access:['Historial de accesos','Periodos emitidos por el administrador'],audit:['Auditoría','Movimientos administrativos registrados en el servidor'],payments:['Comprobantes','Revisión manual de capturas USDT sin activación automática'],affiliates:['Afiliados','Referidos, primeras ventas y comisiones bajo control administrativo']};
  const [head,sub]=headings[view];
- root.innerHTML=`<div class="admin-layout"><aside class="admin-side" id="admin-side"><div class="brand"><img src="/favicon.svg" alt=""/><div><h1>EDGORIA</h1><small>ADMIN CONSOLE</small></div></div><div class="admin-badge">CONTROL PRIVADO</div><nav class="menu" aria-label="Navegación de administrador">${tabs.map(([id,text])=>`<button type="button" class="side-link ${view===id?'active':''}" data-view="${id}" aria-current="${view===id?'page':'false'}"><span aria-hidden="true">${icons[id]}</span> ${text}</button>`).join('')}</nav><div class="side-footer"><strong>Administrador</strong><small>${e(user?.email||'')}</small><button type="button" data-action="signout">Cerrar sesión</button></div></aside><main class="main"><header class="top"><div style="display:flex;align-items:center;gap:13px"><button class="mobile-toggle btn" data-action="menu" aria-label="Abrir menú">☰</button><div><h2>${e(head)}</h2><p>${e(sub)}</p></div></div><div class="top-right"><span class="chip">● Administrador</span><button type="button" data-action="refresh">↻ Actualizar</button></div></header>${store.setup_error?`<div class="alert" style="margin-top:22px">${e(store.setup_error)}</div>`:''}<section>${content}</section><footer>EDGORIA ADMIN · Los pagos externos y las activaciones se administran por separado · Los datos de trading permanecen privados.</footer></main></div>`;
+ root.innerHTML=`<div class="admin-layout"><aside class="admin-side" id="admin-side"><div class="brand"><img src="/favicon.svg" alt=""/><div><h1>EDGORIA</h1><small>ADMIN CONSOLE</small></div></div><div class="admin-badge">CONTROL PRIVADO</div><nav class="menu" aria-label="Navegación de administrador">${tabs.map(([id,text])=>`<button type="button" class="side-link ${view===id?'active':''}" data-view="${id}" aria-current="${view===id?'page':'false'}"><span aria-hidden="true">${icons[id]}</span> ${text}</button>`).join('')}</nav><div class="side-footer"><strong>Administrador</strong><small>${e(user?.email||'')}</small><button type="button" data-action="signout">Cerrar sesión</button></div></aside><main class="main"><header class="top"><div style="display:flex;align-items:center;gap:13px"><button class="mobile-toggle btn" data-action="menu" aria-label="Abrir menú">☰</button><div><h2>${e(head)}</h2><p>${e(sub)}</p></div></div><div class="top-right"><span class="chip">● Administrador</span><button type="button" data-action="refresh">↻ Actualizar</button></div></header>${store.setup_error?`<div class="alert" style="margin-top:22px">${e(store.setup_error)}</div>`:''}<section>${view==='overview'&&paymentQueue?.some(p=>p.status==='pending')?`<div class="eg61-admin-alert">◈ Tienes ${paymentQueue.filter(p=>p.status==='pending').length} comprobante(s) pendiente(s) de revisión. <button class="btn small" type="button" data-view="payments">Ver comprobantes →</button></div>`:''}${content}</section><footer>EDGORIA ADMIN · Los pagos externos y las activaciones se administran por separado · Los datos de trading permanecen privados.</footer></main></div>`;
 }
 function dashboard(){
+ const pendingProofs=paymentQueue?.filter(p=>p.status==='pending').length||0;
  const now=Date.now(),all=store.users.filter(u=>u.role!=='admin'),active=all.filter(u=>u.effective_status==='active'),trials=all.filter(u=>u.current_period?.kind==='trial'),expiring=active.filter(u=>Date.parse(u.current_period?.ends_at)>now&&Date.parse(u.current_period?.ends_at)<=now+7*86400000),legacy=all.filter(u=>u.effective_status==='legacy');
  const next=[...active].sort((a,b)=>Date.parse(a.current_period.ends_at)-Date.parse(b.current_period.ends_at)).slice(0,8),recent=[...store.periods].sort((a,b)=>Date.parse(b.starts_at)-Date.parse(a.starts_at)).slice(0,8);
  return `<div class="main-title"><div><div class="section-label">PANEL DE GESTIÓN</div><h3>Accesos bajo tu control</h3><p>Las pruebas y mensualidades empiezan al pulsar activar. No requieren registrar ningún pago.</p></div><button class="btn primary" data-view="users">Gestionar usuarios →</button></div><div class="kpis"><article class="panel kpi"><span>Usuarios registrados</span><strong>${all.length}</strong><small>${all.filter(u=>u.archived).length} retirados</small></article><article class="panel kpi aqua"><span>Accesos vigentes</span><strong>${active.length}</strong><small>Verificados en servidor</small></article><article class="panel kpi"><span>Pruebas activas</span><strong>${trials.length}</strong><small>Duración 7 días</small></article><article class="panel kpi"><span>Vencen en 7 días</span><strong>${expiring.length}</strong><small>${legacy.length} accesos antiguos sin plazo</small></article></div><div class="grid-two"><section class="panel"><div class="panel-top"><h4>Próximos vencimientos</h4><button class="btn small" data-view="calendar">Calendario ↗</button></div>${rowList(next,u=>`<div class="list-item"><div><strong>${e(userDisplay(u))}</strong><small>${e(u.email)} · ${e(kind(u.current_period.kind))} · Vence ${e(longDate(u.current_period.ends_at))}</small></div>${tag('active')}</div>`,'No hay accesos vigentes.')}</section><section class="panel"><div class="panel-top"><h4>Últimas activaciones</h4><button class="btn small" data-view="access">Historial ↗</button></div>${rowList(recent,p=>`<div class="list-item"><div><strong>${name(p.user_id)}</strong><small>${e(kind(p.kind))} · ${e(longDate(p.starts_at))}</small></div>${tag(periodState(validPeriod(p)))}</div>`,'Aún no hay periodos registrados.')}</section></div><div class="panel"><h4>Activaciones independientes</h4><p class="hero-note">La prueba gratuita dura 7 días. El acceso mensual dura un mes calendario desde el instante de activación. Al vencer, el servidor deniega automáticamente los datos protegidos; el calendario conserva la fecha y el historial.</p></div>`;
@@ -44,6 +46,18 @@ function audit(){const words={trial:'Prueba de 7 días',monthly:'Acceso mensual'
  return `<div class="main-title"><div><div class="section-label">AUDITORÍA</div><h3>Historial administrativo</h3><p>Registro de concesiones, suspensiones y retiradas efectuadas por administradores.</p></div></div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th></tr></thead><tbody>${rows.length?rows.map(a=>`<tr><td>${e(longDate(a.occurred_at))}</td><td>${name(a.user_id)}</td><td>${e(words[a.action]||a.action)}</td></tr>`).join(''):'<tr><td colspan="3" class="empty">No hay acciones registradas.</td></tr>'}</tbody></table></div>`;
 }
 
+function payments(){
+ if(!paymentQueue)return `<section class="panel"><div class="section-label">COMPROBANTES</div><h3>Revisión de pagos</h3><p class="alert">${e(paymentError||'No está habilitada la recepción de comprobantes. Instala la migración 6.1 y configura el flag en Vercel.')}</p></section>`;
+ const pending=paymentQueue.filter(x=>x.status==='pending');
+ const approved=paymentQueue.filter(x=>x.status==='verified');
+ const rejected=paymentQueue.filter(x=>x.status==='rejected');
+ return `<div class="main-title"><div><div class="section-label">USDT · TRC20</div><h3>Comprobantes de usuarios</h3><p>La revisión del pago NO activa una mensualidad y NO genera comisiones automáticamente.</p></div></div><div class="kpis"><article class="panel kpi aqua"><span>Pendientes</span><strong>${pending.length}</strong></article><article class="panel kpi"><span>Verificados</span><strong>${approved.length}</strong></article><article class="panel kpi"><span>Rechazados</span><strong>${rejected.length}</strong></article></div><section class="panel"><div class="panel-top"><h4>Bandeja de revisión</h4><button class="btn small" data-action="reload-payments">Actualizar comprobantes</button></div><div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Fecha</th><th>Importe</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>${paymentQueue.length?paymentQueue.map(x=>{
+ const u=store.users.find(u=>u.user_id===x.user_id);
+ const who=e(u?.email||x.user_id);
+ return `<tr><td><strong>${who}</strong><small>${e(x.transaction_reference||'Sin referencia de transacción')}</small></td><td>${e(longDate(x.created_at))}</td><td>US$${(Number(x.amount_cents||0)/100).toFixed(2)}</td><td>${e(({pending:'Pendiente',verified:'Verificado',rejected:'Rechazado'})[x.status]||x.status)}</td><td><div class="user-actions"><button class="btn small" data-proof-view="${e(x.id)}">Ver captura</button>${x.status==='pending'?`<button class="btn small primary" data-proof-action="verify" data-id="${e(x.id)}">Verificar</button><button class="btn small" data-proof-action="reject" data-id="${e(x.id)}">Rechazar</button>`:''}</div></td></tr>`;
+ }).join(''):'<tr><td colspan="5" class="empty">Ningún comprobante recibido.</td></tr>'}</tbody></table></div><p class="hero-note">Para habilitar el journal, utiliza por separado Usuarios → Conceder acceso; la verificación del comprobante solo deja constancia de tu revisión.</p></section>`;
+}
+
 // Separate commercial administration: verified sales are NOT access grants.
 function affiliatesView(){
  if(!commercial)return `<div class="main-title"><div><div class="section-label">PROGRAMA PARTNERS</div><h3>Afiliados de EDGORIA</h3><p>El acceso de los traders se gestiona únicamente en Usuarios.</p></div></div><div class="alert">${e(commercialError||'Cargando información comercial')}</div>`;
@@ -66,7 +80,7 @@ function affiliatesView(){
  }).join(''):'<tr><td colspan="4" class="empty">Aún no hay comisiones registradas.</td></tr>'}</tbody></table></div></section>`;
 }
 
-function render(){renderShell(({overview:dashboard,calendar,users,access:accesses,audit,affiliates:affiliatesView}[view]||dashboard)())}
+function render(){renderShell(({overview:dashboard,calendar,users,access:accesses,audit,payments,affiliates:affiliatesView}[view]||dashboard)())}
 function accessMessage(msg){root.innerHTML=`<section class="login-wrap"><div class="login-card"><div class="brand"><img src="/favicon.svg" alt=""/><div><h1>EDGORIA</h1><small>ADMIN</small></div></div><h1>Acceso unificado</h1><p>${e(msg)}</p><a class="btn primary" href="/app">Iniciar sesión en EDGORIA →</a></div></section>`}
 async function getToken(){const {data:{session}}=await sb.auth.getSession();if(!session?.access_token)throw Error('Inicia sesión de nuevo');return session.access_token}
 async function api(){const token=await getToken();const r=await fetch('/api/admin?route=console',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||`No se pudo cargar administración (${r.status})`);return data}
@@ -84,12 +98,28 @@ async function commercialAction(action,fields={}){
   body:JSON.stringify({action,...fields})
  });const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||`No se pudo completar ${action}`);return data;
 }
-async function refresh(){if(busy)return;busy=true;try{store=await api();if(view==='affiliates')await fetchCommercial();render()}finally{busy=false}}
+async function fetchPayments(){
+ try{const token=await getToken();const r=await fetch('/api/admin?route=payments',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||'No se pudieron cargar comprobantes');paymentQueue=data.proofs||[];paymentError='';}
+ catch(e){paymentError=e.message||'Comprobantes no disponibles';paymentQueue=null}
+}
+async function reviewProof(action,id,note=''){
+ const token=await getToken();const r=await fetch('/api/admin?route=payments',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({action,id,note})});const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||'Error de revisión');return data;
+}
+async function viewProof(id){
+ const token=await getToken();const response=await fetch('/api/admin?route=payment-image&id='+encodeURIComponent(id),{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});
+ if(!response.ok)throw Error('No se pudo abrir la imagen privada');
+ const blob=await response.blob();const src=URL.createObjectURL(blob);
+ const node=document.createElement('div');node.className='overlay';node.id='proof-modal';node.innerHTML=`<section class="modal-card eg61-proof-modal" role="dialog" aria-modal="true"><div class="section-label">COMPROBANTE PRIVADO · USDT TRC20</div><h3>Imagen para revisión</h3><img alt="Captura del comprobante enviado por un usuario" class="eg61-proof-image"><p class="notice">La captura no confirma por sí sola un pago. Comprueba la recepción antes de marcarlo verificado.</p><button type="button" class="btn" data-action="close-proof">Cerrar</button></section>`;
+ document.body.appendChild(node);node.querySelector('img').src=src;
+ node.querySelector('[data-action="close-proof"]').addEventListener('click',()=>{URL.revokeObjectURL(src);node.remove()});
+}
+async function refresh(){if(busy)return;busy=true;try{store=await api();await fetchPayments();if(view==='affiliates')await fetchCommercial();render()}finally{busy=false}}
+
 function modal(id){const u=store.users.find(x=>x.user_id===id);if(!u||u.archived||u.role==='admin')return;selectedUser=u;const node=document.createElement('div');node.id='access-modal';node.className='overlay';node.innerHTML=`<section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="access-title"><div class="section-label">CONCEDER ACCESO</div><h3 id="access-title">${e(userDisplay(u))}</h3><p>${e(u.email)} · La activación no depende de pagos externos.</p><form id="access-form"><label>Duración<select class="select" name="kind" required><option value="trial">Prueba gratuita: 7 días</option><option value="monthly">Mensualidad: 1 mes desde la activación</option></select></label><p class="notice">La fecha de vencimiento se calculará en el servidor y aparecerá automáticamente en el calendario. Una prueba gratuita solo puede concederse una vez por usuario.</p><div class="actions"><button class="btn" type="button" data-action="close-modal">Cancelar</button><button class="btn primary" type="submit">Activar acceso</button></div><div class="error" id="access-error" role="alert"></div></form></section>`;document.body.appendChild(node)}
 function closeModal(){selectedUser=null;document.querySelector('#access-modal')?.remove()}
 root.addEventListener('click',async ev=>{
  const button=ev.target.closest('[data-view],button');if(!button)return;
- if(button.dataset.view){view=button.dataset.view;if(view==='affiliates')await fetchCommercial();render();document.querySelector('#admin-side')?.classList.remove('open');return}
+ if(button.dataset.view){view=button.dataset.view;if(view==='affiliates')await fetchCommercial();if(view==='payments')await fetchPayments();render();document.querySelector('#admin-side')?.classList.remove('open');return}
  try{
   const act=button.dataset.action;
   if(act==='refresh')await refresh();
@@ -99,6 +129,9 @@ root.addEventListener('click',async ev=>{
   else if(act==='prev-month'){month=shiftedMonth(month,-1);selectedDate=month+'-01';render()}
   else if(act==='next-month'){month=shiftedMonth(month,1);selectedDate=month+'-01';render()}
   else if(button.dataset.day){selectedDate=button.dataset.day;render()}
+  else if(act==='reload-payments'){await fetchPayments();render();toast('Comprobantes actualizados')}
+  else if(button.dataset.proofView){await viewProof(button.dataset.proofView)}
+  else if(button.dataset.proofAction){const action=button.dataset.proofAction;const id=button.dataset.id;let note='';if(action==='verify'){if(!confirm('Confirma únicamente si verificaste externamente la recepción de USDT. Esto NO activará el Journal.'))return}else{const reply=prompt('Motivo del rechazo del comprobante:');if(reply===null)return;note=reply.trim();if(note.length<5)throw Error('Especifica el motivo')}await reviewProof(action,id,note);await fetchPayments();render();toast('Comprobante revisado. El acceso sigue bajo tu control.');}
   else if(button.dataset.grant)modal(button.dataset.grant);
   else if(button.dataset.suspend){if(!confirm('¿Suspender al usuario? Se anulará el periodo activo.'))return;await change('suspend',button.dataset.suspend);await refresh();toast('Cuenta suspendida')}
   else if(button.dataset.delete){
@@ -129,7 +162,7 @@ root.addEventListener('click',async ev=>{
  }catch(err){toast(err.message||'No se pudo completar la acción')}
 });
 document.addEventListener('click',ev=>{if(ev.target?.id==='access-modal'||ev.target.closest?.('[data-action="close-modal"]'))closeModal()});
-document.addEventListener('keydown',ev=>{if(ev.key==='Escape')closeModal()});
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){closeModal();document.querySelector('#proof-modal [data-action=close-proof]')?.click()}});
 document.addEventListener('submit',async ev=>{if(ev.target.id==='affiliate-sale-form'){
   ev.preventDefault();const f=ev.target;const btn=f.querySelector('[type=submit]');btn.disabled=true;
   try{const d=new FormData(f);if(!d.get('confirmed'))throw Error('Debes confirmar la verificación');

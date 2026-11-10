@@ -4,8 +4,9 @@ import mt5_diagnostics from '../server/v4-mt5-diagnostics.js';
 import file_upload from '../server/v4-file-upload.js';
 import file_delete from '../server/v4-file-delete.js';
 import access_management from '../server/v4-access-management.js';
+import member61 from '../server/v61-member.js';
 // Consolidated Vercel Hobby dispatcher. Every route retains its own authentication and method checks.
-const routes = Object.freeze({'me': me, 'admin-roles': admin_roles, 'mt5-diagnostics': mt5_diagnostics, 'file-upload': file_upload, 'file-delete': file_delete, 'access-management': access_management});
+const routes = Object.freeze({'me': me, 'admin-roles': admin_roles, 'mt5-diagnostics': mt5_diagnostics, 'file-upload': file_upload, 'file-delete': file_delete, 'access-management': access_management, 'member': member61});
 export default {
   async fetch(request) {
     const url = new URL(request.url);

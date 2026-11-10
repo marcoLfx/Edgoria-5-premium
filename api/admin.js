@@ -1,5 +1,6 @@
 import adminConsole from '../server/admin-console.js';
 import affiliates60 from '../server/v60-affiliates.js';
+import payments61 from '../server/v61-payments.js';
 import {json,rest,filter} from '../server/supabase.js';
 import {requireAdmin} from '../server/v4-access.js';
 const idRx=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -7,6 +8,7 @@ export default {async fetch(req){
  const route=new URL(req.url).searchParams.get('route');
  if(route==='console')return adminConsole.fetch(req);
  if(route==='affiliates')return affiliates60.fetch(req);
+ if(route==='payments'||route==='payment-image')return payments61.fetch(req);
  if(!['GET','POST'].includes(req.method))return json({error:'Método no permitido'},405);
  try{
   const user=await requireAdmin(req);

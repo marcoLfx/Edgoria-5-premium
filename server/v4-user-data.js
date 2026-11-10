@@ -11,7 +11,7 @@ function publicConfig(){
     throw bad('La configuración pública de Supabase no está completa',503,'PUBLIC_CONFIG');
   return {url,key};
 }
-export async function userContext(req){
+export async function userContext(req,{allowPending=false}={}){
   const auth=String(req.headers.get('authorization')||'');
   const match=/^Bearer (eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+)$/.exec(auth);
   if(!match)throw bad('Inicia sesión para continuar',401,'AUTH_REQUIRED');
@@ -45,7 +45,7 @@ export async function userContext(req){
   const adminByUid=user.id===String(process.env.EDGORIA_ADMIN_USER_ID||'');
   const ownRoles=adminByUid?[]:await rest('edgoria_v4_roles',{query:`user_id=eq.${user.id}&select=role&limit=1`});
   const isAdmin=adminByUid||ownRoles?.[0]?.role==='admin';
-  if(!isAdmin){
+  if(!isAdmin&&!allowPending){
     const grants=await rest('edgoria_v4_access_grants',{query:`user_id=eq.${user.id}&select=access_status,trial_ends_at&limit=1`});
     if(grants?.[0]?.access_status==='suspended')throw bad('Esta cuenta está suspendida. Contacta al administrador.',403,'ACCESS_DISABLED');
     if(grants?.[0]?.access_status!=='active')throw bad('Tu correo está confirmado. Falta la aprobación del administrador.',403,'ACCESS_PENDING');

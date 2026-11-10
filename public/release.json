@@ -1,8 +1,25 @@
 {
   "app": "EDGORIA",
-  "version": "6.0.0-rc1",
-  "release": "Afiliados y comercialización manual sin activar accesos",
+  "version": "6.1.0",
+  "release": "Registro con permisos limitados, comprobantes privados, revisión de pagos y afiliados sin activación automática",
   "released": "2026-11-10",
-  "areas": ["Landing", "Dashboard", "Journal", "Analytics", "Strategy Lab", "Admin", "Afiliados"],
-  "backend_migration_required": true
+  "areas": [
+    "Landing",
+    "Dashboard",
+    "Journal",
+    "Analytics",
+    "Strategy Lab",
+    "Admin",
+    "Afiliados"
+  ],
+  "backend_migration_required": true,
+  "release_type": "preview",
+  "features": [
+    "landing-mt5-ctrader",
+    "pending-workspace",
+    "affiliate-request",
+    "manual-usdt-receipts",
+    "private-admin-proof-review",
+    "manual-access-only"
+  ]
 }

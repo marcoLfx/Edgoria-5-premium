@@ -4,10 +4,10 @@ export async function requireUser(request){
  const {user}=await userContext(request);
  return user;
 }
-export async function resolvedRole(user,request){
+export async function resolvedRole(user,request,providedRest=null){
  if(process.env.EDGORIA_ADMIN_USER_ID && user.id===process.env.EDGORIA_ADMIN_USER_ID)return 'admin';
  // Reading the user's own role is allowed by RLS; never trust client metadata.
- const {rest:scoped}=await userContext(request);
+ const scoped=providedRest||(await userContext(request)).rest;
  const rows=await scoped('edgoria_v4_roles',{query:`user_id=eq.${encodeURIComponent(user.id)}&select=role&limit=1`});
  return rows?.[0]?.role||'trader';
 }

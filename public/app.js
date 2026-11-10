@@ -11,8 +11,9 @@ const asPercent=(v)=>`${(Number.isFinite(v)?v:0).toFixed(1)}%`;
 const emptyData=()=>({accounts:[],trades:[],journal_entries:[],edgoria_journal_attachments:[],payouts:[],edgoria_v4_cash_movements:[],edgoria_plans:[],edgoria_subscriptions:[],edgoria_invoices:[],edgoria_affiliates:[],edgoria_affiliate_commissions:[],edgoria_partner_commissions:[],edgoria_risk_rules:[],edgoria_weekly_reviews:[],edgoria_mt5_connections:[],edgoria_strategies:[],edgoria_trade_annotations:[],edgoria_v4_profiles:[],edgoria_v4_roles:[],edgoria_v4_partner_applications:[],edgoria_v4_import_batches:[],edgoria_v4_file_positions:[]});
 let sb=null, cloudAvailable=false, cloudError='', busy=false, importing=false;
 let uploadResult=null;
+const paymentBucket='edgoria-payment-proofs';
 const calendarSessionRules={};
-const state={adminUserFilter:'all',adminUserQuery:'',role:'trader',personalJournalLoaded:false,profile:null,access:null,accessAdmin:null,v4AdminRoles:null,isAdmin:false,adminData:null,adminIssues:[],timezone:DEFAULT_ZONE,mode:'cloud',user:null,view:'dashboard',account:'all',period:'1',analysisDate:'',data:emptyData(),month:new Date().toISOString().slice(0,7),selectedDay:'',search:'',calendarPreset:'ny_close',};
+const state={member:null,eligibility_status:'pending',adminUserFilter:'all',adminUserQuery:'',role:'trader',personalJournalLoaded:false,profile:null,access:null,accessAdmin:null,v4AdminRoles:null,isAdmin:false,adminData:null,adminIssues:[],timezone:DEFAULT_ZONE,mode:'cloud',user:null,view:'dashboard',account:'all',period:'1',analysisDate:'',data:emptyData(),month:new Date().toISOString().slice(0,7),selectedDay:'',search:'',calendarPreset:'ny_close',};
 const sections=[
   {v:'dashboard',i:'▦',n:'Overview'}, {v:'trades',i:'↗',n:'Operaciones'},
   {v:'calendar',i:'▤',n:'Calendario P&L'}, {v:'analytics',i:'◫',n:'Analytics'},
@@ -135,8 +136,12 @@ async function init(){
       try{await bootStage('Verificando rol y permisos',()=>loadIdentity(),11000)}catch(e){if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code)){bootFinished();renderPending(e.code);return;}if(['SUBSCRIPTION_REQUIRED','ACCESS_EXPIRED'].includes(e.code)){bootFinished();renderSubscriptionPending();return;}if(e.code==='ACCESS_DISABLED'){bootFinished();renderSuspended();return;}throw e}
       if(state.role==='admin'){bootFinished();location.replace('/admin');return;}
       await bootStage('Revisando invitación',()=>tryClaimReferral(),11000);
-      await bootStage('Cargando operaciones y dashboard',()=>loadCloud(),16000);
-      await bootStage('Comprobando permisos administrativos',()=>checkAdmin(),11000);
+      await bootStage('Preparando suscripción y afiliación',()=>refreshMember(),10000);
+      await bootStage('Preparando perfil de afiliado',()=>ensureRequestedAffiliate(),10000);
+      if(state.role!=='pending'){
+        await bootStage('Cargando operaciones y dashboard',()=>loadCloud(),16000);
+        await bootStage('Comprobando permisos administrativos',()=>checkAdmin(),11000);
+      }
       bootFinished();render();return;
     }
     bootFinished();renderAuth(new URLSearchParams(location.search).get('register')==='1');
@@ -196,7 +201,7 @@ async function writeData(table,row,method='insert'){
 }
 async function guarded(cb){if(busy)return;busy=true;try{await cb()}catch(e){console.error(e);notify(e.message||'Se produjo un error',true)}finally{busy=false}}
 function renderAuth(register=false){
-  $('#root').innerHTML=`<div class="login"><section class="login-art">${brand}<div class="login-copy"><div class="section-label">TU HISTORIAL. TU PROCESO. TU EVOLUCIÓN.</div><h1>Cada decisión<br>deja una <em>huella.</em></h1><p>Un journal diseñado para aprender de cada sesión. Conecta estadísticas, gestión del riesgo y disciplina en un espacio privado.</p><div class="login-features"><span>◈ Análisis de rendimiento</span><span>◎ Diario de decisiones</span><span>▣ Gestión de cuentas</span></div></div><div class="login-curve"><div class="row spread"><b style="font-size:12px">INTELIGENCIA DE RENDIMIENTO</b><span class="tag positive">Ilustración de producto</span></div>${equityChart(loginPreviewTrades())}</div></section><section class="login-aside"><div class="eyebrow">EDGORIA / SECURE ACCESS</div><h2>${register?'Empieza tu journal':'Tu espacio te espera'}</h2><p>${register?'Crea tu cuenta privada. Tus registros se guardarán en la nube.':'Accede a tus cuentas, operaciones y estadísticas guardadas.'}</p><form id="auth-form" class="auth-form" data-register="${register?'1':'0'}"><label class="control">Correo electrónico<input class="field" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="trader@ejemplo.com"/></label><label class="control">Contraseña<input class="field" name="password" type="password" minlength="10" required autocomplete="${register?'new-password':'current-password'}" placeholder="Mínimo 10 caracteres"/></label>${register?`<div class="v4-registration"><label class="control">Nombre completo<input class="field" name="full_name" maxlength="120" required autocomplete="name" placeholder="Tu nombre y apellido"/></label><label class="control">País<input class="field" name="country" required maxlength="100" autocomplete="country-name" placeholder="Ej. Perú"/></label><label class="control">Teléfono (opcional)<input class="field" name="phone" type="tel" autocomplete="tel" maxlength="24" placeholder="+51 ..."/></label><label class="control">Experiencia<select class="field" name="experience"><option value="prefiero_no_decir">Prefiero no indicar</option><option value="principiante">Principiante</option><option value="intermedio">Intermedio</option><option value="avanzado">Avanzado</option></select></label><div class="micro">Primero verificamos tu correo. Después, el administrador revisará y activará tu cuenta. No tendrás acceso al dashboard antes de su aprobación.</div></div>`:''}<button type="submit" class="btn primary">${register?'Crear mi cuenta':'Ingresar a mi journal'} →</button></form><div style="text-align:center;margin-top:26px;font-size:12px;color:var(--muted)">${register?'¿Ya tienes cuenta?':'¿Todavía no tienes cuenta?'} <button class="link" data-action="toggle-auth" data-register="${register?'0':'1'}">${register?'Iniciar sesión':'Registrarme'}</button></div><div style="text-align:center;margin-top:14px"><button class="link" data-action="recover">Olvidé mi contraseña</button></div><div class="eg42-public-link"><a href="/">← Descubrir EDGORIA</a></div><div class="auth-footnote">🔒 Acceso con Supabase Auth y políticas de aislamiento por usuario. No conectamos ni ejecutamos órdenes con tu cuenta de broker.<div class="legal-links"><a href="/privacidad.html">Privacidad</a> · <a href="/terminos.html">Términos de uso</a></div></div></section></div>`;
+  $('#root').innerHTML=`<div class="login"><section class="login-art">${brand}<div class="login-copy"><div class="section-label">TU HISTORIAL. TU PROCESO. TU EVOLUCIÓN.</div><h1>Cada decisión<br>deja una <em>huella.</em></h1><p>Un journal diseñado para aprender de cada sesión. Conecta estadísticas, gestión del riesgo y disciplina en un espacio privado.</p><div class="login-features"><span>◈ Análisis de rendimiento</span><span>◎ Diario de decisiones</span><span>▣ Gestión de cuentas</span></div></div><div class="login-curve"><div class="row spread"><b style="font-size:12px">INTELIGENCIA DE RENDIMIENTO</b><span class="tag positive">Ilustración de producto</span></div>${equityChart(loginPreviewTrades())}</div></section><section class="login-aside"><div class="eyebrow">EDGORIA / SECURE ACCESS</div><h2>${register?'Empieza tu journal':'Tu espacio te espera'}</h2><p>${register?'Crea tu cuenta privada. Tus registros se guardarán en la nube.':'Accede a tus cuentas, operaciones y estadísticas guardadas.'}</p><form id="auth-form" class="auth-form" data-register="${register?'1':'0'}"><label class="control">Correo electrónico<input class="field" name="email" type="email" autocomplete="email" required maxlength="254" placeholder="trader@ejemplo.com"/></label><label class="control">Contraseña<input class="field" name="password" type="password" minlength="10" required autocomplete="${register?'new-password':'current-password'}" placeholder="Mínimo 10 caracteres"/></label>${register?`<div class="v4-registration"><label class="control">Nombre completo<input class="field" name="full_name" maxlength="120" required autocomplete="name" placeholder="Tu nombre y apellido"/></label><label class="control">País<input class="field" name="country" required maxlength="100" autocomplete="country-name" placeholder="Ej. Perú"/></label><label class="control">Teléfono (opcional)<input class="field" name="phone" type="tel" autocomplete="tel" maxlength="24" placeholder="+51 ..."/></label><label class="control">Tipo de perfil<select class="field" name="requested_profile"><option value="trader">Trader · Journal</option><option value="affiliate">Afiliado · Solicitar programa</option></select></label><label class="control">Experiencia<select class="field" name="experience"><option value="prefiero_no_decir">Prefiero no indicar</option><option value="principiante">Principiante</option><option value="intermedio">Intermedio</option><option value="avanzado">Avanzado</option></select></label><div class="micro">Primero verificamos tu correo. Después, el administrador revisará y activará tu cuenta. Podrás entrar a un dashboard de bienvenida y acceder a Suscripción, Afiliados y Ajustes; el journal y las métricas permanecerán bloqueados hasta que el administrador habilite tu acceso.</div></div>`:''}<button type="submit" class="btn primary">${register?'Crear mi cuenta':'Ingresar a mi journal'} →</button></form><div style="text-align:center;margin-top:26px;font-size:12px;color:var(--muted)">${register?'¿Ya tienes cuenta?':'¿Todavía no tienes cuenta?'} <button class="link" data-action="toggle-auth" data-register="${register?'0':'1'}">${register?'Iniciar sesión':'Registrarme'}</button></div><div style="text-align:center;margin-top:14px"><button class="link" data-action="recover">Olvidé mi contraseña</button></div><div class="eg42-public-link"><a href="/">← Descubrir EDGORIA</a></div><div class="auth-footnote">🔒 Acceso con Supabase Auth y políticas de aislamiento por usuario. No conectamos ni ejecutamos órdenes con tu cuenta de broker.<div class="legal-links"><a href="/privacidad.html">Privacidad</a> · <a href="/terminos.html">Términos de uso</a></div></div></section></div>`;
 }
 function renderRecover(){
  $('#root').innerHTML=`<div class="recover-wrap"><div class="recover-card">${brand}<div class="section-label">SEGURIDAD DE LA CUENTA</div><h1>Recupera tu acceso</h1><p class="hint">Te enviaremos un enlace de recuperación a tu correo, si existe una cuenta asociada.</p><form id="recover-form" class="formstack"><label class="control">Correo electrónico<input class="field" name="email" type="email" autocomplete="email" required placeholder="tu@correo.com"></label><button class="btn primary" type="submit">Enviar enlace →</button></form><button class="link" style="margin-top:22px" data-action="toggle-auth" data-register="0">← Volver al inicio</button></div></div>`;
@@ -210,12 +215,14 @@ async function login(form){
   if(form.dataset.register==='1'){
     const full_name=String(f.get('full_name')||'').trim(),country=String(f.get('country')||'').trim(),phone=String(f.get('phone')||'').trim(),experience=String(f.get('experience')||'prefiero_no_decir');
     if(full_name.length<2||full_name.length>120||country.length<2||country.length>100||phone.length>24||!['principiante','intermedio','avanzado','prefiero_no_decir'].includes(experience))throw Error('Completa correctamente tus datos de registro');
-    const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/app',data:{full_name,country,phone,experience}}});if(error)throw error;
-    if(data.session){state.user=data.user;state.timezone=localStorage.getItem('edgoria_trading_tz_'+state.user.id)||DEFAULT_ZONE;await ensureProfile();try{await loadIdentity()}catch(e){if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code)){renderPending(e.code);return;}if(e.code==='SUBSCRIPTION_REQUIRED'){renderSubscriptionPending();return;}if(e.code==='ACCESS_DISABLED'){renderSuspended();return;}throw e}if(state.role==='admin'){location.assign('/admin');return;}await tryClaimReferral();await loadCloud();await checkAdmin();render()}
+    const requested_profile=String(f.get('requested_profile')||'trader');
+    if(!['trader','affiliate'].includes(requested_profile))throw Error('Selecciona un tipo de perfil válido');
+    const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/app',data:{full_name,country,phone,experience,requested_profile}}});if(error)throw error;
+    if(data.session){state.user=data.user;state.timezone=localStorage.getItem('edgoria_trading_tz_'+state.user.id)||DEFAULT_ZONE;await ensureProfile();await loadIdentity();if(state.role==='admin'){location.assign('/admin');return;}await tryClaimReferral();await refreshMember();await ensureRequestedAffiliate();if(state.role!=='pending'){await loadCloud();await checkAdmin()}render()}
     else{renderAuth(false);notify('¡Bienvenido! Revisa tu correo: verifica tu dirección y espera la aprobación de EDGORIA.')}
   }else{
     const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;
-    state.user=data.user;state.timezone=localStorage.getItem('edgoria_trading_tz_'+state.user.id)||DEFAULT_ZONE;await ensureProfile();try{await loadIdentity()}catch(e){if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code)){renderPending(e.code);return;}if(e.code==='SUBSCRIPTION_REQUIRED'){renderSubscriptionPending();return;}if(e.code==='ACCESS_DISABLED'){renderSuspended();return;}throw e}if(state.role==='admin'){location.assign('/admin');return;}await tryClaimReferral();await loadCloud();await checkAdmin();render();notify('Bienvenido a EDGORIA');
+    state.user=data.user;state.timezone=localStorage.getItem('edgoria_trading_tz_'+state.user.id)||DEFAULT_ZONE;await ensureProfile();await loadIdentity();if(state.role==='admin'){location.assign('/admin');return;}await tryClaimReferral();await refreshMember();await ensureRequestedAffiliate();if(state.role!=='pending'){await loadCloud();await checkAdmin()}render();notify('Bienvenido a EDGORIA');
   }
 }
 async function ensureProfile(){
@@ -229,8 +236,8 @@ async function ensureProfile(){
 async function loadIdentity(){
  state.role='trader';state.personalJournalLoaded=false;state.profile=null;state.access=null;
  try{const {data:{session}}=await sb.auth.getSession();const res=await fetch('/api/v4-me',{headers:{Authorization:'Bearer '+session.access_token}});if(!res.ok){const detail=await res.json().catch(()=>({}));const err=new Error(detail.error||'No se pudo validar tu acceso.');err.code=detail.code;throw err;}
- const data=await res.json();state.role=data.role||'trader';state.personalJournalLoaded=false;state.profile=data.profile||null;state.access=data.access||null;if(state.role!=='admin'&&data.access?.access_status!=='active')throw Object.assign(new Error('Acceso pendiente de autorización'),{code:'ACCESS_PENDING'});
- state.view=state.role==='admin'?'admin':state.role==='partner'?'affiliates':'dashboard';
+ const data=await res.json();state.eligibility_status=data.eligibility_status||'pending';state.role=data.role==='admin'?'admin':data.allowed?(data.role==='partner'?'partner':'trader'):'pending';state.personalJournalLoaded=false;state.profile=data.profile||null;state.access=data.access||null;
+ state.view=state.role==='admin'?'admin':'dashboard';
  }catch(e){
   // Preserve structured 403 codes: a confirmed registration MUST see the pending
   // approval screen rather than the generic bootstrap failure.
@@ -239,13 +246,14 @@ async function loadIdentity(){
   throw Object.assign(new Error('No fue posible verificar tu sesión. Pulsa reintentar o revisa el despliegue de Vercel.'),{code:e?.code||'IDENTITY_UNAVAILABLE'});
  }
 }
-async function logout(){if(sb){const {error}=await sb.auth.signOut();if(error)throw error;} state.user=null;state.role='trader';state.personalJournalLoaded=false;state.profile=null;state.isAdmin=false;state.adminData=null;state.data=emptyData();state.accessAdmin=null;renderAuth()}
+async function logout(){if(sb){const {error}=await sb.auth.signOut();if(error)throw error;} state.user=null;state.role='trader';state.personalJournalLoaded=false;state.profile=null;state.isAdmin=false;state.adminData=null;state.data=emptyData();state.accessAdmin=null;state.member=null;renderAuth()}
 // Vistas personales separadas del control de usuarios y partners.
 const adminPrivateViews=new Set(['dashboard','trades','calendar','analytics','mindset','prop','connect']);
 const adminAllowedViews=new Set([...adminPrivateViews,'admin','roles','settings']);
 const partnerAllowedViews=new Set(['affiliates','settings']);
+const pendingAllowedViews=new Set(['dashboard','membership','affiliates','settings']);
 const traderAllowedViews=new Set(sections.map(x=>x.v).filter(v=>!['admin','roles'].includes(v)));
-function canOpenView(view){return (state.role==='admin'?adminAllowedViews:state.role==='partner'?partnerAllowedViews:traderAllowedViews).has(view)}
+function canOpenView(view){return (state.role==='admin'?adminAllowedViews:state.role==='partner'?partnerAllowedViews:state.role==='pending'?pendingAllowedViews:traderAllowedViews).has(view)}
 function navGroup(title,names){
   const items=sections.filter(x=>names.includes(x.v)&&canOpenView(x.v));
   if(!items.length)return '';
@@ -255,6 +263,7 @@ function sidebarNavigation(){
  // EDGORIA51_NAV: preserve original route IDs and role boundaries.
  const button=(v,label)=>{if(!canOpenView(v))return '';const x=sections.find(e=>e.v===v);return `<button class="navbtn ${state.view===v?'active':''}" data-view="${v}" type="button"><span class="ico">${navIcon(v)}</span>${escapeHTML(label)}</button>`};
  if(state.role==='partner')return navGroup('PARTNERS',['affiliates','settings']);
+ if(state.role==='pending'){const locked=[['calendar','Calendario'],['trades','Journal'],['analytics','Analytics'],['mindset','Strategy Lab'],['risk','Risk Watch'],['intelligence','AI Coach'],['score','Reportes'],['connect','Cuenta'],['prop','Mis Cuentas']];return `<div class="ed51-sidebar-primary">${button('dashboard','Dashboard')}${locked.map(([id,name])=>`<button type="button" class="navbtn eg61-disabled" disabled title="Se habilita al activar tu acceso"><span class="ico">${navIcon(id)}</span>${escapeHTML(name)} <small>🔒</small></button>`).join('')}</div><div class="ed51-nav-separator"></div><div class="ed51-sidebar-secondary">${button('membership','Suscripción')}${button('affiliates','Afiliados')}${button('settings','Ajustes')}</div>`;}
  if(state.role==='admin')return navGroup('ADMINISTRACIÓN',['admin','roles'])+navGroup('JOURNAL PRIVADO',['dashboard','trades','analytics','risk','prop','intelligence','mindset','calendar','score','connect','settings']);
  return `<div class="ed51-sidebar-primary">`+
  button('dashboard','Dashboard')+button('calendar','Calendario')+button('trades','Journal')+
@@ -806,14 +815,31 @@ function intelligence(){
  const largest=Object.entries(by).sort((a,b)=>b[1].count-a[1].count)[0];
  return pageTitle('EDGORIA INTELLIGENCE','Revisión inteligente','Patrones verificables del historial. Sin señales de inversión.')+`<div class="grid2"><section class="card"><div class="cardhead"><h3>Resumen del historial</h3><span class="tag positive">ANÁLISIS LOCAL</span></div><div class="statrow"><span>Operaciones registradas</span><b>${t.length}</b></div><div class="statrow"><span>Activos distintos</span><b>${Object.keys(by).length}</b></div><div class="statrow"><span>Activo más operado</span><b>${largest?escapeHTML(largest[0]):'—'}</b></div><div class="statrow"><span>Reflexiones emocionales</span><b>${state.data.journal_entries.length}</b></div><p class="hint">Las observaciones proceden de tus propios registros y no de un modelo de IA externo.</p></section><section class="card"><h3>Antes de analizar con IA</h3><p class="hint">La futura IA Review interpretará datos históricos de forma explicable y con límite de uso por cuenta. No está conectada a un modelo externo en esta versión.</p><div class="notice">La estadística actual no demuestra causalidad entre emociones y resultados. No utilices un patrón aislado como señal de compra o venta.</div></section></div>`;
 }
-function membership(){
- const manual=state.access?.manual_subscription||null;
- const expires=manual?.expires_at&&Date.parse(manual.expires_at)>Date.now();
- const active=manual?.status==='active'&&expires;
- const note=active?`Activa hasta ${escapeHTML(new Date(manual.expires_at).toLocaleDateString('es-PE'))}`:'Pendiente de verificación administrativa';
- const linked=state.data.edgoria_mt5_connections?.length||0;
- return pageTitle('EDGORIA / SUSCRIPCIÓN','Tu acceso','Una sola membresía, con confirmación de pago manual.')+`<div class="eg56-member-wrap"><section class="card eg56-member-plan"><div class="section-label">PLAN ÚNICO · ACCESO MENSUAL</div><h2>EDGORIA PRO</h2><p class="eg56-member-old">Precio regular <s>US$14.99</s></p><div class="eg56-member-price">US$10.99 <small>precio lanzamiento / 1 mes</small></div><div class="eg56-plan-features"><span>✓ Journal y Analytics</span><span>✓ Strategy Lab</span><span>✓ Hasta 5 conexiones MT5</span><span>✓ Un mes de acceso desde la activación</span></div><div class="notice">Pago mediante USDT. La activación no es automática: solicita los datos oficiales de pago al equipo y espera la verificación manual antes de recibir acceso. No envíes claves privadas.</div></section><section class="card eg56-member-status"><h3>Estado de tu membresía</h3><span class="eg56-payment-pill ${active?'live':''}">${active?'Activa':'Por verificar'}</span><div class="statrow"><span>Período</span><b>${escapeHTML(note)}</b></div><div class="statrow"><span>Conexiones MT5</span><b>${linked} / 5</b></div><p class="micro">Si ya realizaste el pago, la confirmación depende de la comprobación independiente del administrador. EDGORIA no ejecuta transacciones con tu cartera ni almacena claves de ella.</p><button type="button" class="btn" data-action="refresh-sync">Actualizar mi estado</button></section></div>`;
+function lockedDashboard(){
+ const status=state.eligibility_status==='expired'?'Tu periodo terminó':state.eligibility_status==='suspended'?'Tu acceso está suspendido':'Tu cuenta está lista';
+ return `<div class="eg61-locked"><div class="section-label">EDGORIA / ACCESO PRIVADO</div><div class="eg61-lock-icon">◇</div><h1>${escapeHTML(status)}</h1><p>Tu cuenta y tu sesión están activas. El Journal, las estadísticas y las conexiones MT5 estarán disponibles cuando el administrador conceda una prueba o una mensualidad. Mientras tanto, puedes revisar tu suscripción, ajustar tus datos y solicitar afiliación.</p><div class="eg61-locked-actions"><button class="btn primary" data-view="membership">Ver suscripción →</button><button class="btn" data-view="affiliates">Perfil de afiliado</button><button class="btn" data-view="settings">Mis ajustes</button></div><p class="micro">Ningún comprobante habilita el journal automáticamente. La autorización depende del administrador.</p></div>`;
 }
+async function refreshMember(){
+ try{state.member=await apiGet('v4?route=member')}catch(err){state.member={enabled:false,proofs:[],affiliate:null,network:'TRC20',wallet:'TB5UoKnA1zK5AowiiWH8QUT7DMKcCdUphN',price_cents:1099};console.warn('EDGORIA: estado comercial no disponible',err.message)}
+}
+async function ensureRequestedAffiliate(){
+ if(state.user?.user_metadata?.requested_profile!=='affiliate'||state.member?.affiliate)return;
+ try{await apiPost('affiliate-enroll');await refreshMember()}catch(e){console.warn('Solicitud de afiliación pendiente:',e.message)}
+}
+function pendingSettings(){const p=state.profile||{};return pageTitle('MI CUENTA','Ajustes y perfil','Actualiza tus datos mientras se revisa tu acceso.')+`<section class="card eg61-payment-card"><form id="v4-profile-form" class="formstack"><label class="control">Nombre completo<input class="field" name="full_name" minlength="2" maxlength="120" required value="${escapeHTML(p.full_name||state.user?.user_metadata?.full_name||'')}"></label><label class="control">País<input class="field" name="country" minlength="2" maxlength="100" required value="${escapeHTML(p.country||state.user?.user_metadata?.country||'')}"></label><label class="control">Teléfono opcional<input class="field" name="phone" maxlength="24" value="${escapeHTML(p.phone||'')}"></label><input type="hidden" name="experience" value="${escapeHTML(p.experience||'prefiero_no_decir')}"><button class="btn primary" type="submit">Guardar perfil</button></form></section>`}
+function pendingAffiliateView(){
+ const affiliate=state.member?.affiliate;
+ return pageTitle('EDGORIA PARTNERS','Mi perfil de afiliado','La inscripción no habilita el journal ni genera comisiones automáticamente.')+`<section class="card eg61-payment-card"><div class="section-label">PROGRAMA DE AFILIADOS</div><h2>${affiliate?'Tu solicitud de afiliación':'Solicita ser afiliado'}</h2><p>Comisión de referencia: 25 % por la primera mensualidad comercial verificada; 30 % para partners autorizados. Tu cuenta de trader puede permanecer pendiente mientras revisamos esta solicitud.</p><div class="statrow"><span>Estado</span><strong>${escapeHTML(affiliate?.status||'Sin solicitud')}</strong></div>${affiliate?.status==='active'?`<label class="control">Tu enlace<input class="field" value="${escapeHTML(location.origin+'/?ref='+affiliate.code)}" readonly></label><button class="btn" data-action="copy-pending-affiliate">Copiar enlace</button>`:affiliate?'<p class="notice">El administrador revisará tu solicitud. No compartas un enlace hasta su aprobación.</p>':'<button class="btn primary" data-action="enroll-affiliate">Solicitar afiliación →</button>'}<p class="micro">Las comisiones se registran únicamente tras verificar una venta elegible; no dependen de los permisos del Journal.</p></section>`;
+}
+function membership(){
+ const proofs=state.member?.proofs||[];
+ const current=state.access?.current_period;
+ const status=state.eligibility_status==='active'?'Acceso vigente':state.eligibility_status==='expired'?'Acceso vencido':state.eligibility_status==='suspended'?'Suspendido':'Pendiente de activación';
+ const wallet=String(state.member?.wallet||'TB5UoKnA1zK5AowiiWH8QUT7DMKcCdUphN');
+ const rows=proofs.map(p=>`<div class="statrow"><span>${escapeHTML(new Date(p.created_at).toLocaleDateString('es-PE'))} · ${escapeHTML(({pending:'En revisión',verified:'Verificado (sin activar)',rejected:'Rechazado'})[p.status]||p.status)}</span><b>US$${(Number(p.amount_cents)/100).toFixed(2)}</b></div>`).join('');
+ return pageTitle('EDGORIA / SUSCRIPCIÓN','Tu acceso a EDGORIA','El pago y la habilitación del journal son procesos diferentes.')+`<div class="eg61-payment-layout"><section class="card eg61-payment-card"><span class="section-label">PLAN ÚNICO · LANZAMIENTO</span><h2>EDGORIA PRO</h2><p class="micro">Precio regular <s>US$14.99</s></p><div class="eg61-price">US$10.99 <small>/ 1 mes desde activación</small></div><div class="eg56-plan-features"><span>✓ Dashboard y Analytics al activarse</span><span>✓ Strategy Lab</span><span>✓ Conexiones MT5: hasta 5</span><span>✓ Un mes calendario autorizado por administrador</span></div><button class="btn primary" data-action="show-payment-wallet">Ver datos para pagar con USDT →</button><div id="eg61-wallet" class="eg61-wallet" hidden><p><b>Red: TRC20 (TRON)</b> · Activo: USDT</p><label class="control">Dirección de recepción<input id="eg61-wallet-address" class="field" readonly value="${escapeHTML(wallet)}" /></label><button type="button" class="btn" data-action="copy-payment-wallet">Copiar dirección</button><p class="micro">Comprueba cuidadosamente la red y la dirección en tu propia billetera. Nunca compartas frases semilla ni claves privadas. El envío de una captura no acredita recepción ni activa la cuenta.</p></div><hr class="eg61-divider"/><h3>Adjuntar comprobante</h3><p class="micro">Solo imágenes JPG, PNG o WebP de hasta 3 MB. La imagen se guarda de forma privada para revisión administrativa.</p><form id="eg61-payment-proof-form" class="formstack"><label class="control">Captura del comprobante<input type="file" name="receipt" accept="image/png,image/jpeg,image/webp" class="field" required ${state.member?.enabled?'':'disabled'}></label><label class="control">Referencia de transacción (opcional)<input class="field" name="transaction_reference" maxlength="128" placeholder="Identificador, sin claves secretas"></label><label class="control"><input type="checkbox" name="confirmation" required> Confirmo que el comprobante corresponde a mi operación y acepto su revisión manual.</label><button type="submit" class="btn primary" ${state.member?.enabled?'':'disabled'}>Enviar comprobante a revisión</button></form>${state.member?.enabled?'':'<div class="notice">Los comprobantes aún no están habilitados en esta instalación. El administrador debe completar la migración 6.1.</div>'}</section><section class="card eg61-payment-card"><span class="section-label">MI ESTADO</span><h3>${escapeHTML(status)}</h3><div class="statrow"><span>Inicio de acceso</span><b>${current?escapeHTML(new Date(current.starts_at).toLocaleDateString('es-PE')):'—'}</b></div><div class="statrow"><span>Vencimiento</span><b>${current?escapeHTML(new Date(current.ends_at).toLocaleDateString('es-PE')):'—'}</b></div><p class="micro">Puedes presentar un comprobante con una cuenta pendiente. Solo el administrador puede conceder, renovar o suspender el Journal.</p><h3>Mis comprobantes</h3>${rows||'<p class="micro">No has enviado ningún comprobante todavía.</p>'}<button type="button" class="btn" data-action="refresh-entitlement">Actualizar estado</button></section></div>`;
+}
+
 function affiliatesView(){
  const a=state.data.edgoria_affiliates[0],origin=location.origin;
  const link=a?origin+'/?ref='+encodeURIComponent(a.code):'';
@@ -909,7 +935,7 @@ async function fetchAdminRoles(){
  const {data:{session}}=await sb.auth.getSession();const resp=await fetch('/api/v4-admin-roles',{headers:{Authorization:'Bearer '+session.access_token}});
  if(!resp.ok)throw Error('No se pudo cargar el panel administrativo');state.v4AdminRoles=await resp.json();
 }
-const pages={dashboard,trades:tradesView,calendar:calendarView,analytics,mindset,prop:accountsView,replay,connect:connectV4,risk:riskGuard,score:scoreView,membership,affiliates:partnerDashboard,intelligence,admin:adminView,roles:adminRolesView,settings:v4Settings};
+const pages={dashboard:()=>state.role==='pending'?lockedDashboard():dashboard(),trades:tradesView,calendar:calendarView,analytics,mindset,prop:accountsView,replay,connect:connectV4,risk:riskGuard,score:scoreView,membership,affiliates:()=>state.role==='pending'?pendingAffiliateView():affiliatesView(),intelligence,admin:adminView,roles:adminRolesView,settings:()=>state.role==='pending'?pendingSettings():v4Settings()};
 
 async function hydrateJournalPhotos(){
   if(state.view!=='mindset'||!sb)return;
@@ -1000,6 +1026,10 @@ async function onAction(act,btn){
       await refreshData();notify('Cuenta MT5 eliminada');break;
     }
     case 'refresh-sync':await refreshData();notify('Cuentas y operaciones actualizadas');break;
+    case 'refresh-entitlement':await loadIdentity();await refreshMember();if(state.role==='admin'){location.assign('/admin');return;}if(state.role!=='pending'){await loadCloud();await checkAdmin()}render();notify('Estado actualizado');break;
+    case 'show-payment-wallet':{const node=$('#eg61-wallet');if(node){node.hidden=!node.hidden;btn.textContent=node.hidden?'Ver datos para pagar con USDT →':'Ocultar dirección'}break;}
+    case 'copy-payment-wallet':{const address=$('#eg61-wallet-address')?.value;if(!address)throw Error('Dirección no disponible');await navigator.clipboard.writeText(address);notify('Dirección copiada; comprueba la red TRC20');break;}
+    case 'copy-pending-affiliate':{const a=state.member?.affiliate;if(!a||a.status!=='active')throw Error('Tu enlace aún no está habilitado');await navigator.clipboard.writeText(location.origin+'/?ref='+a.code);notify('Enlace copiado');break;}
     case 'reload-roles':await fetchAdminRoles();update();break;
     case 'admin-filter':{const filter=String(btn.dataset.filter||'all');if(['all','pending','active','suspended'].includes(filter)){state.adminUserFilter=filter;update();}break;}
     case 'reload-access':await fetchAccessAdmin();update();break;
@@ -1011,7 +1041,7 @@ async function onAction(act,btn){
 
     case 'recover':renderRecover();break;
     case 'toggle-auth':renderAuth(btn.dataset.register==='1');break;
-    case 'check-approval':{try{const {data}=await sb.auth.getUser();state.user=data.user;await loadIdentity();if(state.role==='admin'){location.assign('/admin');break;}await loadCloud();await checkAdmin();render();notify('Acceso autorizado. Bienvenido a EDGORIA.')}catch(e){if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code))renderPending(e.code);else if(e.code==='SUBSCRIPTION_REQUIRED')renderSubscriptionPending();else throw e}break;}
+    case 'check-approval':{const {data}=await sb.auth.getUser();state.user=data.user;await loadIdentity();await refreshMember();if(state.role==='admin'){location.assign('/admin');break;}if(state.role!=='pending'){await loadCloud();await checkAdmin()}render();notify(state.role==='pending'?'Tu acceso todavía requiere autorización':'Acceso actualizado');break;}
     case 'signout':await logout();break;
     case 'menu':$('#sidebar')?.classList.toggle('show');break;
     case 'annotate-trade':annotationModal(state.data.trades.find(x=>String(x.id)===id));break;
@@ -1031,7 +1061,7 @@ async function onAction(act,btn){
     case 'suspend-affiliate':await adminAction('suspend-affiliate',id);break;
     case 'approve-commission':await adminAction('approve-commission',id);break;
     case 'mark-commission-paid':if(confirm('¿Comprobaste que la transferencia al afiliado fue efectivamente realizada?'))await adminAction('mark-commission-paid',id,'TRANSFER_VERIFIED');break;
-    case 'enroll-affiliate':await apiPost('affiliate-enroll');await refreshData();notify('Solicitud de afiliación registrada');break;
+    case 'enroll-affiliate':await apiPost('affiliate-enroll');await refreshMember();if(state.role!=='pending')await loadCloud();update();notify('Solicitud de afiliación registrada');break;
     case 'copy-affiliate':{
       const a=state.data.edgoria_affiliates[0];if(!a)throw Error('No hay enlace');await navigator.clipboard.writeText(location.origin+'/?ref='+a.code);notify('Enlace copiado');break;
     }
@@ -1044,12 +1074,31 @@ async function onAction(act,btn){
 async function formSubmit(form){
   const fd=new FormData(form),values=Object.fromEntries(fd.entries());
   if(form.id==='auth-form')return login(form);
+  if(form.id==='eg61-payment-proof-form'){
+    if(!state.member?.enabled)throw Error('La recepción de comprobantes todavía no está disponible');
+    if((state.member.proofs||[]).some(p=>p.status==='pending'))throw Error('Ya tienes un comprobante pendiente de revisión');
+    const file=form.querySelector('[name="receipt"]')?.files?.[0];
+    if(!file||file.size>3145728||!['image/png','image/jpeg','image/webp'].includes(file.type))throw Error('Adjunta una imagen JPG, PNG o WebP de máximo 3 MB');
+    if(!fd.has('confirmation'))throw Error('Confirma la revisión manual');
+    const tx=String(values.transaction_reference||'').trim();if(tx.length>128)throw Error('Referencia demasiado larga');
+    const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
+    const objectPath=`${state.user.id}/${uuid()}.${ext}`;
+    const button=form.querySelector('[type=submit]');if(button){button.disabled=true;button.textContent='Enviando comprobante…'}
+    try{
+      const up=await sb.storage.from(paymentBucket).upload(objectPath,file,{contentType:file.type,upsert:false,cacheControl:'0'});
+      if(up.error)throw Error('No se pudo guardar la imagen privada: '+up.error.message);
+      const save=await sb.from('edgoria_payment_proofs').insert({user_id:state.user.id,object_path:objectPath,amount_cents:1099,network:'TRC20',transaction_reference:tx||null});
+      if(save.error)throw Error('Imagen recibida, pero no se pudo registrar el comprobante. Contacta a soporte antes de enviarlo de nuevo.');
+      await refreshMember();update();notify('Comprobante recibido; revisión pendiente. No se activó el journal.');
+    }finally{if(button){button.disabled=false;button.textContent='Enviar comprobante a revisión'}}
+    return;
+  }
   if(form.id==='v4-profile-form'){
     const full_name=String(values.full_name||'').trim(),country=String(values.country||'').trim(),phone=String(values.phone||'').trim();
     if(full_name.length<2||full_name.length>120||country.length<2||country.length>100||phone.length>24||!/^[+0-9 ()-]*$/.test(phone))throw Error('Verifica nombre, país y teléfono');
     const obj={user_id:state.user.id,full_name,country,phone:phone||null,experience:values.experience};
     const {error}=await sb.from('edgoria_v4_profiles').upsert(obj,{onConflict:'user_id'});if(error)throw error;
-    await loadCloud();update();notify('Perfil actualizado');return;
+    if(state.role!=='pending')await loadCloud();state.profile={...(state.profile||{}),...obj};update();notify('Perfil actualizado');return;
   }
   if(form.id==='v4-partner-form'){
     const message=String(values.message||'').trim();if(message.length>1000||!message)throw Error('Escribe una breve presentación');

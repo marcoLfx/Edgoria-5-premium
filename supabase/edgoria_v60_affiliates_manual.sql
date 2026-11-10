@@ -77,9 +77,8 @@ begin
    limit 1;
  -- Only the FIRST verified paid month of a referred customer earns a commission.
  if v_affiliate is not null and not exists (
-   select 1 from public.edgoria_partner_commissions c
-     join public.edgoria_manual_sales s on s.id=c.sale_id
-    where s.buyer_id=p_buyer_id and c.sale_id<>v_sale
+   select 1 from public.edgoria_manual_sales s
+   where s.buyer_id=p_buyer_id and s.id<>v_sale
  ) then
    if v_rate not in (2500,3000) then raise exception 'Affiliate rate must be configured first'; end if;
    v_amount:=pg_catalog.round(p_amount_cents::numeric*v_rate/10000)::integer;
