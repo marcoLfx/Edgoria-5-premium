@@ -1,0 +1,39 @@
+/* EDGORIA 5.3 — visual refinement; no changes to auth, database or metrics. */
+:root{--eg53-bg:#050c17;--eg53-panel:#0c1a2b;--eg53-line:rgba(145,181,231,.16);--eg53-blue:#3f82ff;--eg53-text:#ebf3ff}
+html,body{background:var(--eg53-bg)!important}
+.shell{background:radial-gradient(ellipse at 72% -10%,rgba(49,105,215,.16),transparent 57%),var(--eg53-bg)!important;min-height:100dvh}
+.shell .sidebar{height:100dvh!important;max-height:100dvh!important;overflow:hidden!important;width:clamp(224px,17vw,262px)!important;flex:0 0 clamp(224px,17vw,262px)!important;padding:0!important;display:flex!important;flex-direction:column!important;background:linear-gradient(168deg,#081527,#060e1c 74%)!important;border-right:1px solid var(--eg53-line)!important;box-shadow:none!important;z-index:25}
+.shell .sidebar-scroll{height:100%!important;min-height:0!important;padding:18px 12px 16px!important;overflow-y:auto!important;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(116,150,210,.38) transparent;display:flex!important;flex-direction:column!important;gap:2px}
+.shell .sidebar-scroll::-webkit-scrollbar{width:5px}.shell .sidebar-scroll::-webkit-scrollbar-thumb{border-radius:8px;background:rgba(116,150,210,.38)}
+.shell .sidebar-scrollrail{display:none!important}
+.shell .sidebar .brand{padding:6px 12px 23px!important;align-items:center!important;gap:11px!important}
+.shell .brandmark,.login .brandmark{display:grid!important;place-items:center!important;flex:0 0 40px!important;width:40px!important;height:40px!important;border:1px solid rgba(94,150,236,.35)!important;border-radius:12px!important;background:linear-gradient(130deg,#12294c,#0b1b35)!important;box-shadow:0 4px 18px #123b7b28!important}
+.shell .brandmark img,.login .brandmark img{width:28px;height:28px;object-fit:contain;filter:none!important}
+.shell .brandname,.login .brandname{font-size:20px!important;letter-spacing:.17em!important;color:#fff!important;font-weight:700!important}
+.shell .brandname small,.login .brandname small{margin-top:4px!important;color:#7798c9!important;letter-spacing:.19em!important;font-size:9px!important}
+.shell .navbtn{margin:2px 0!important;min-height:42px!important;width:100%!important;border-radius:11px!important;gap:12px!important;padding:10px 12px!important;color:#a6bbda!important;font-size:12px!important;font-weight:600!important;transition:background-color .18s ease,color .18s ease,border-color .18s ease!important}
+.shell .navbtn.active{color:#fff!important;background:linear-gradient(100deg,#255de1,#163b9a)!important;border-color:rgba(108,163,255,.35)!important;box-shadow:0 8px 22px #1044bb26!important}
+.shell .navbtn:hover:not(.active){background:rgba(74,111,172,.16)!important;color:#f2f7ff!important}
+.shell .navbtn .ico{display:grid;place-items:center;flex:0 0 20px;width:20px}.shell .navbtn .ico svg{width:19px;height:19px}
+.shell .ed51-nav-separator{height:1px!important;background:var(--eg53-line)!important;margin:14px 5px 11px!important;flex:0 0 auto!important}
+.shell .ed51-sidebar-secondary{padding-bottom:9px!important}
+.shell .sidebar-bottom{margin-top:auto!important;padding-top:12px!important}.shell .sidebar-bottom .tip{padding:12px!important;background:#0d2139!important;border:1px solid #223854!important}.shell .sidebar-bottom .tip p{line-height:1.5!important}
+.shell .content{min-width:0!important;width:100%!important;flex:1 1 0!important}
+.shell .topbar{height:64px!important;min-height:64px!important;padding:0 clamp(14px,2vw,32px)!important;gap:12px!important;background:rgba(7,17,32,.94)!important;border-bottom:1px solid var(--eg53-line)!important;backdrop-filter:blur(18px)}
+.shell .workspace{width:100%!important;max-width:none!important;padding:clamp(16px,2vw,28px)!important;min-width:0!important}
+.shell .footer{border-top-color:var(--eg53-line)!important}
+.shell .card,.ed51-dashboard .ed51-panel,.eg52-analytics .eg52-surface{border:1px solid var(--eg53-line)!important;background:linear-gradient(160deg,#0d1b30,#091625)!important;border-radius:15px!important;box-shadow:0 10px 30px #00000018!important}
+.ed51-dashboard,.eg52-analytics{max-width:none!important;width:100%!important}.ed51-dashboard .ed51-metrics,.eg52-analytics .eg52-stats{gap:10px!important}
+.ed51-dashboard .ed51-metric,.eg52-analytics .eg52-stat{border-radius:13px!important;box-shadow:none!important;min-width:0}
+.ed51-dashboard .ed51-metric strong,.eg52-analytics .eg52-stat strong{font-variant-numeric:tabular-nums;letter-spacing:-.025em}
+.ed51-dashboard .ed51-panel h2,.eg52-analytics .eg52-surface h2{letter-spacing:-.015em}
+.eg52-analytics .eg52-advanced{border-color:var(--eg53-line)!important}
+.shell .btn,.shell button,.shell .field{border-radius:10px;transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease}
+.shell :is(a,button,input,select,summary):focus-visible{outline:2px solid #8eb6ff!important;outline-offset:3px!important}
+/* Never hide important KPIs at standard desktop sizes; allow responsive reflow. */
+@media(min-width:1200px){.ed51-dashboard .ed51-metrics,.eg52-analytics .eg52-stats{grid-template-columns:repeat(5,minmax(0,1fr))!important}}
+@media(max-width:1199px) and (min-width:801px){.ed51-dashboard .ed51-metrics,.eg52-analytics .eg52-stats{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:880px){.shell .sidebar{position:fixed!important;inset:0 auto 0 0!important;transform:translateX(-105%);width:min(82vw,290px)!important;flex-basis:auto!important;box-shadow:22px 0 55px #0008!important}.shell .sidebar.show{transform:translateX(0)!important}.shell .topbar{padding:0 12px!important}.shell .workspace{padding:17px 12px 25px!important}}
+@media(max-width:600px){.ed51-dashboard .ed51-metrics,.eg52-analytics .eg52-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}.shell .top-actions .field{max-width:35vw!important}.shell .sidebar-bottom .tip{display:none}}
+@media(hover:hover){.ed51-dashboard .ed51-panel,.eg52-analytics .eg52-surface{transition:border-color .2s ease,box-shadow .2s ease!important}.ed51-dashboard .ed51-panel:hover,.eg52-analytics .eg52-surface:hover{border-color:rgba(118,169,248,.35)!important;box-shadow:0 15px 36px #0003!important}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}.shell *{animation:none!important;transition:none!important}}
