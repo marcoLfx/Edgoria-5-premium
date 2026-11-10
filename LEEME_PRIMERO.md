@@ -1,36 +1,37 @@
-# EDGORIA 5.6 · Cambios solicitados
+# EDGORIA 6.4 — Sincronización de comisiones y señales visuales
 
-## Contenido
+## Alcance exacto
 
-1. Menú: Dashboard → Calendario → Journal → Analytics → Strategy Lab → Risk Watch → AI Coach → Reportes; debajo, separados: Cuenta, Mis Cuentas, Suscripción, Ajustes.
-2. Dashboard: Insights de EDGORIA ocupa 100% del ancho. Eliminada la tarjeta Plan de riesgo del día. Los datos siguen viniendo del historial real.
-3. Landing: texto de seguridad simplificado, precio regular US$14.99 tachado y lanzamiento US$10.99 por 1 mes, hasta 5 conexiones MT5 y activación USDT manual. No se muestra dirección de pago inventada.
-4. Suscripción interna: oferta, estado manual verificado, vencimiento y contador MT5.
-5. Admin: lista de usuarios y accesos, indicador de mensualidades vigentes, acción "Confirmar USDT · 1 mes" con referencia verificada, revocación, y contadores. Solo el servidor autoriza y registra verificaciones.
-6. Servidor: máximo 5 vinculaciones MT5 por usuario; SQL entrega además protección concurrente; acciones USDT atómicas con registro de auditoría.
+- `public/index.html`: añade un check verde al recuadro MetaTrader 5 y un reloj de arena ámbar al de cTrader.
+- `public/edgoria64.css`: estilos de esos dos indicadores y de la nota de sincronización.
+- `public/app.js`: consulta automática cada **20 segundos** mientras el afiliado mantiene su pantalla abierta y activa; refresca al recuperar el foco; refleja estados `pending`, `approved` y `paid` que el administrador ya cambia desde su panel. El endpoint privado `/api/affiliate-portal` ya devuelve datos actuales (`no-store`), sin identidades de referidos.
+- `public/app.html`: versión de caché 6.4 e importación de CSS.
+- `tests/v63-affiliates.test.js`: actualiza la prueba de vista aprobada para aceptar el nuevo refresco de estado.
 
-## Instalación en una RAMA DE PRUEBA
+**No se modifican backend, funciones de Vercel, SQL, Supabase, MT5, accesos, pagos ni comisiones existentes.** No se genera dinero ni se cambia el estado desde el panel del afiliado; su vista es estrictamente de consulta.
 
-- **Haz respaldo de tu BD y del repo antes de comenzar.**
-- Abre GitHub Desktop y confirma que el repositorio corresponde a EDGORIA y la rama NO es main ni master.
-- Extrae este ZIP a una carpeta nueva en Windows.
-- Ejecuta `INSTALAR_EN_WINDOWS.bat`, proporcionando la ruta de la raíz del repositorio, por ejemplo `C:\Users\TU_USUARIO\Documents\GitHub\edgoria-produccion`.
-- El instalador comprueba SHA256 de cada archivo frente a la versión 5.5 de la que partimos. Si tu código difiere, **se detiene sin sobrescribir**. No uses el ZIP completo para saltarte la comprobación.
-- Si aplica, revisa los cambios en GitHub Desktop → Commit → Push origin → Vercel Preview.
+## Instalación segura (recomendada)
 
-## Base de datos y pagos (PRUEBAS antes de activación)
+1. Abre GitHub Desktop y selecciona tu repositorio que despliega `edgoria-5-premium`.
+2. Haz `Fetch origin`, crea una nueva rama `edgoria-64-preview` desde `main`. No toques Production primero.
+3. Extrae este ZIP **fuera del repositorio**.
+4. En GitHub Desktop, menú `Repository` → `Show in Explorer`. Copia esa ruta.
+5. Ejecuta `INSTALAR_WINDOWS.bat` y pega la ruta. Es necesario tener **Python 3** instalado (el comando `py` de Windows).
+6. El instalador comprueba todos los textos originales antes de cambiar los archivos y crea un respaldo `EDGORIA64_BACKUP_...` en la carpeta **anterior** al repositorio, fuera del control de versiones. No se incluye en GitHub.
+7. Inspecciona que GitHub Desktop muestre **exactamente 6 archivos**, `public/index.html`, `public/app.js`, `public/app.html`, `public/edgoria64.css`, `tests/v63-affiliates.test.js`, `tests/v64-affiliate-sync.test.js`. Haz commit en tu rama Preview → Push Origin.
+8. Abre el despliegue Preview de Vercel. Prueba escritorio/móvil y el panel del afiliado con una cuenta de prueba.
+9. Cuando todo esté comprobado, fusiona la rama con `main` mediante PR o GitHub Desktop, según tu flujo de publicación.
 
-1. **Nunca compartas la clave secreta en GitHub ni en el navegador.** En Vercel (servidor), usa `SUPABASE_SECRET_KEY` para los endpoints admin con autorización; URL y clave pública se configuran por separado.
-2. Tras backup y en un Supabase de pruebas, ejecuta desde SQL Editor `supabase/edgoria_v56_manual_usdt.sql`. Contiene RLS y funciones transaccionales de verificación. Revisa su contenido antes de aplicarlo a producción.
-3. En Vercel Preview establece `EDGORIA_USDT_MANUAL_ENABLED=1` (no es clave secreta; solo habilita el módulo admin USDT). Re-deploy Preview.
-4. En el panel administrador verás usuarios registrados, activos y pagos activos. Para verificar un USDT REALMENTE RECIBIDO, utiliza el botón `Confirmar USDT · 1 mes`, introduce la referencia comprobada y confirma. **Nunca actives basado solo en una captura o afirmación del usuario.** La acción crea la mensualidad por un mes calendario y actualiza acceso.
-5. Prueba: registro → email confirmado → admin valida pago → mensualidad → login → hasta 5 enlaces MT5 → revocación → login bloqueado, sin perder historial. Comprueba que se rechacen referencias duplicadas y el sexto enlace MT5.
-6. **No actives `EDGORIA_ENFORCE_PAID_ACCESS=1` hasta validar todos los flujos**, incluido acceso de admin sin pago y cuentas activas antiguas. Con esa variable, usuarios sin mensualidad activa o cortesía vigente no podrán acceder a endpoints protegidos.
-7. La aplicación no recibe USDT ni conecta con una cartera; solo permite registrar y auditar la verificación externa, manual y administrativa. No se ha configurado dirección de pago ni confirmación automática on-chain.
+No pegues el instalador ni CSS en Supabase SQL Editor. **6.4 no tiene migraciones SQL.**
 
-## Estado de pruebas
+## Prueba de sincronización sin riesgo
 
-- Pruebas nuevas: 6/6 correctas (orden, dashboard con cero y dos operaciones, landing/precios, esquema/seguridad, límite MT5, suscripción).
-- Suite histórica de 5.5: 120/156. La 5.6: 124/162; **38 tests heredados/versionados fallan**. No se certifica producción.
-- Se requiere desplegar en Preview, verificar el esquema SQL, RLS, roles, importación MT5, expiración, suspensión y control administrativo con datos reales antes del lanzamiento.
-- La versión NO se ha publicado en GitHub, Vercel ni Supabase desde este entorno.
+- Abre una cuenta de **afiliado de prueba** con su dashboard; deja la pestaña abierta.
+- Desde otra sesión de Administrador, **con una comisión de prueba creada de manera legítima en tu entorno de pruebas**, cambia de Pendiente → Aprobada y, tras confirmar el pago real de prueba, a Pagada.
+- Vuelve a la pestaña del afiliado. Al recuperar el foco o en aproximadamente 20 segundos si está visible, debe actualizarse `Pendientes`, `Aprobadas`, `Pagadas` y el historial.
+- Comprueba que el usuario no pueda cambiar el estado desde su dashboard. El pago y la activación siguen separados.
+- Si no se actualiza, en Vercel Logs comprueba `/api/v4?route=affiliate-portal`. No pegues tokens de sesión en soporte.
+
+### Nota de seguridad
+
+No marques como pagada una comisión de un cliente real como parte de esta prueba, salvo que efectivamente se haya transferido. No pruebes compras reales ni transferencias nuevas sin necesidad.

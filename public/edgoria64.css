@@ -1,0 +1,10 @@
+/* EDGORIA 6.4 — Indicators only; no change to cards' content or links. */
+.eg60-integration-card{position:relative;padding-right:76px}
+.eg64-integration-signal{position:absolute;right:23px;top:24px;width:42px;height:42px;display:grid;place-items:center;border-radius:50%;flex:none}
+.eg64-integration-signal svg{width:23px;height:23px;display:block}
+.eg64-integration-signal.ready{color:#51eed2;background:rgba(26,204,157,.12);border:1px solid rgba(45,215,170,.28)}
+.eg64-integration-signal.soon{color:#f6b74b;background:rgba(243,163,31,.12);border:1px solid rgba(246,183,75,.28)}
+.eg64-sync-note{font-size:11px;color:#99b6d4;display:inline-flex;align-items:center;gap:6px}
+.eg64-sync-note:before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:#49d9ca}
+@media(max-width:750px){.eg60-integration-card{padding-right:65px}.eg64-integration-signal{right:16px;top:18px;width:36px;height:36px}.eg64-integration-signal svg{width:20px;height:20px}}
+@media(prefers-reduced-motion:reduce){.eg64-integration-signal{transition:none}}
