@@ -49,10 +49,21 @@ export async function userContext(req){
     const grants=await rest('edgoria_v4_access_grants',{query:`user_id=eq.${user.id}&select=access_status,trial_ends_at&limit=1`});
     if(grants?.[0]?.access_status==='suspended')throw bad('Esta cuenta está suspendida. Contacta al administrador.',403,'ACCESS_DISABLED');
     if(grants?.[0]?.access_status!=='active')throw bad('Tu correo está confirmado. Falta la aprobación del administrador.',403,'ACCESS_PENDING');
-    if(process.env.EDGORIA_ENFORCE_PAID_ACCESS==='1'){
-      const sub=await rest('edgoria_manual_subscriptions',{query:`user_id=eq.${user.id}&status=eq.active&select=expires_at&limit=1`});
-      const courtesy=grants?.[0]?.trial_ends_at&&Date.parse(grants[0].trial_ends_at)>Date.now();
-      if(!courtesy&&(!sub?.length||Date.parse(sub[0].expires_at)<=Date.now()))throw bad('Tu membresía requiere activación o renovación',403,'SUBSCRIPTION_REQUIRED');
+    // 5.9: Payment receipts NEVER determine trader access. Calendar-issued
+    // grants are independently authoritative. No cron job is required for expiry:
+    // every protected request compares server time against ends_at.
+    if(process.env.EDGORIA_ACCESS_PERIODS_ENABLED==='1'){
+      let periods;
+      try{periods=await rest('edgoria_access_periods',{
+        query:`user_id=eq.${user.id}&select=kind,status,starts_at,ends_at&order=starts_at.desc&limit=100`
+      });}catch(err){throw bad('No se pudo verificar el calendario de acceso. Contacta a soporte.',503,'ACCESS_SETUP_REQUIRED');}
+      const now=Date.now();
+      const permitted=periods.some(p=>p.status==='active'&&Date.parse(p.starts_at)<=now&&Date.parse(p.ends_at)>now);
+      // Backwards compatibility: already approved legacy users with no 5.9 period
+      // retain access until an administrator assigns them a timed period. This is
+      // intentionally visible in the admin overview as "Sin plazo (legado)".
+      if(periods.length&&!permitted)throw bad('Tu periodo de acceso terminó. Solicita una nueva activación.',403,'ACCESS_EXPIRED');
+      if(!periods.length&&process.env.EDGORIA_LEGACY_ACCESS_ALLOWED==='0')throw bad('El administrador debe asignar tu periodo de acceso.',403,'ACCESS_EXPIRED');
     }
   }
 

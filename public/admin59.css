@@ -1,0 +1,9 @@
+/* 5.9 visual refinements, inherits responsive styles from admin57.css */
+.tag.archived{color:#f7c2ce;background:#442530;border-color:#9f5064}
+.tag.legacy{color:#e2cfa1;background:#332d1b;border-color:#7a6841}
+.checkline{display:inline-flex;gap:8px;align-items:center;color:#a9c5e1;font-size:12px;white-space:nowrap}
+.checkline input{accent-color:#55e8d6}
+.calendar-member{border-left:2px solid #4079c3;padding-left:12px}
+.panel{box-shadow:0 11px 40px #020b1815}
+.side-link{font-size:13px}
+@media(max-width:850px){.toolbar{gap:8px}.checkline{order:3;width:100%}}

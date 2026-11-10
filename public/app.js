@@ -86,7 +86,7 @@ function renderPending(code='ACCESS_PENDING'){
  $('#root').innerHTML=`<div class="setup-screen"><div class="setup-card eg31-pending">${brand}<div class="section-label">EDGORIA · CUENTA EN REVISIÓN</div><div class="eg31-pending-symbol">${confirmed?'◷':'✉'}</div><h1>${confirmed?'Tu acceso está pendiente':'Confirma tu correo'}</h1><p>${confirmed?'Tu correo ha sido confirmado. Un administrador debe habilitar tu cuenta antes de entrar al dashboard.':'Revisa el enlace enviado a tu correo. Después podrás esperar la aprobación administrativa.'}</p><div class="row wrap"><button class="btn primary" data-action="check-approval">Comprobar mi acceso</button><button class="btn" data-action="signout">Cerrar sesión</button></div></div></div>`;
 }
 function renderSubscriptionPending(){
- $('#root').innerHTML=`<div class="setup-screen"><div class="setup-card">${brand}<div class="section-label">EDGORIA · MEMBRESÍA</div><h1>Tu mensualidad necesita activación</h1><p>Acceso mensual desde US$10.99 durante el lanzamiento (precio regular US$14.99). Hasta 5 conexiones MT5.</p><p>El pago USDT requiere verificación manual por el administrador. Contacta a EDGORIA mediante sus canales oficiales para recibir información y confirmar tu acceso.</p><div class="row wrap"><button class="btn primary" data-action="check-approval">Comprobar activación</button><button class="btn" data-action="signout">Cerrar sesión</button></div></div></div>`;
+ $('#root').innerHTML=`<div class="setup-screen"><div class="setup-card">${brand}<div class="section-label">EDGORIA · MEMBRESÍA</div><h1>Tu acceso necesita activación</h1><p>Tu acceso anterior ha vencido o requiere autorización. Las pruebas gratuitas son de 7 días y las mensualidades duran un mes desde su activación.</p><p>Los pagos se coordinan por separado. La activación y los periodos de acceso son asignados exclusivamente por el administrador.</p><div class="row wrap"><button class="btn primary" data-action="check-approval">Comprobar activación</button><button class="btn" data-action="signout">Cerrar sesión</button></div></div></div>`;
 }
 function renderSuspended(){
  $('#root').innerHTML=`<div class="setup-screen"><div class="setup-card">${brand}<div class="section-label">ACCESO ADMINISTRADO</div><h1>Cuenta desactivada</h1><p>El acceso a EDGORIA está suspendido. Contacta al administrador si necesitas revisar tu estado.</p><button class="btn" data-action="signout">Cerrar sesión</button></div></div>`;
@@ -125,7 +125,7 @@ async function init(){
       state.user=result.data.user;
       state.timezone=localStorage.getItem('edgoria_trading_tz_'+state.user.id)||DEFAULT_ZONE;
       await bootStage('Cargando perfil',()=>ensureProfile(),11000);
-      try{await bootStage('Verificando rol y permisos',()=>loadIdentity(),11000)}catch(e){if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code)){bootFinished();renderPending(e.code);return;}if(e.code==='SUBSCRIPTION_REQUIRED'){bootFinished();renderSubscriptionPending();return;}if(e.code==='ACCESS_DISABLED'){bootFinished();renderSuspended();return;}throw e}
+      try{await bootStage('Verificando rol y permisos',()=>loadIdentity(),11000)}catch(e){if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code)){bootFinished();renderPending(e.code);return;}if(['SUBSCRIPTION_REQUIRED','ACCESS_EXPIRED'].includes(e.code)){bootFinished();renderSubscriptionPending();return;}if(e.code==='ACCESS_DISABLED'){bootFinished();renderSuspended();return;}throw e}
       if(state.role==='admin'){bootFinished();location.replace('/admin');return;}
       await bootStage('Revisando invitación',()=>tryClaimReferral(),11000);
       await bootStage('Cargando operaciones y dashboard',()=>loadCloud(),16000);
@@ -134,7 +134,7 @@ async function init(){
     }
     bootFinished();renderAuth(new URLSearchParams(location.search).get('register')==='1');
   }catch(e){
-    if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code)){bootFinished();renderPending(e.code);return;}if(e.code==='SUBSCRIPTION_REQUIRED'){bootFinished();renderSubscriptionPending();return;}if(e.code==='ACCESS_DISABLED'){bootFinished();renderSuspended();return;}
+    if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code)){bootFinished();renderPending(e.code);return;}if(['SUBSCRIPTION_REQUIRED','ACCESS_EXPIRED'].includes(e.code)){bootFinished();renderSubscriptionPending();return;}if(e.code==='ACCESS_DISABLED'){bootFinished();renderSuspended();return;}
     cloudError=e.message||'Error de conexión';
     console.error('EDGORIA init:',e);
     bootFinished();renderSetup('No se pudo iniciar: '+cloudError);
@@ -227,7 +227,7 @@ async function loadIdentity(){
  }catch(e){
   // Preserve structured 403 codes: a confirmed registration MUST see the pending
   // approval screen rather than the generic bootstrap failure.
-  if(['ACCESS_PENDING','EMAIL_UNCONFIRMED','ACCESS_DISABLED','SUBSCRIPTION_REQUIRED'].includes(e?.code))throw e;
+  if(['ACCESS_PENDING','EMAIL_UNCONFIRMED','ACCESS_DISABLED','SUBSCRIPTION_REQUIRED','ACCESS_EXPIRED'].includes(e?.code))throw e;
   console.error('EDGORIA role verification:',e?.code||e?.message||'UNKNOWN');
   throw Object.assign(new Error('No fue posible verificar tu sesión. Pulsa reintentar o revisa el despliegue de Vercel.'),{code:e?.code||'IDENTITY_UNAVAILABLE'});
  }
@@ -1179,10 +1179,16 @@ document.addEventListener('focusout',ev=>{const el=ev.target.closest?.('.eg14-eq
 document.addEventListener('submit',async ev=>{ev.preventDefault();const form=ev.target;if(!form.id)return;await guarded(()=>formSubmit(form))});
 // Refresh visible dashboard automatically while not editing a form; MT5 EA pushes via server independently.
 let v3RefreshPending=false;
+async function verifyCurrentEntitlement(){
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session?.access_token)throw Object.assign(new Error('Sesión terminada'),{code:'AUTH_REQUIRED'});
+ const response=await fetch('/api/v4-me',{headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'});
+ if(!response.ok){const detail=await response.json().catch(()=>({}));throw Object.assign(new Error(detail.error||'Acceso no disponible'),{code:detail.code||'ACCESS_ERROR'})}
+}
 async function pollMt5Dashboard(){
  if(!state.user||!sb||(state.role!=='trader'&&!(state.role==='admin'&&state.personalJournalLoaded))||busy||v3RefreshPending||document.hidden||$('#modal-root')||$('#v4-upload-form input[type=file]')?.files?.length||$('#workspace input:focus, #workspace textarea:focus'))return;
  v3RefreshPending=true;
- try{await loadCloud();update()}catch(e){console.warn('EDGORIA: no se pudo actualizar el historial automáticamente',e?.message||e)}finally{v3RefreshPending=false}
+ try{await verifyCurrentEntitlement();await loadCloud();update()}catch(e){if(e?.code==='ACCESS_EXPIRED'||e?.code==='ACCESS_DISABLED'){state.data=emptyData();renderSubscriptionPending();return}console.warn('EDGORIA: no se pudo actualizar el historial automáticamente',e?.message||e)}finally{v3RefreshPending=false}
 }
 setInterval(pollMt5Dashboard,60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollMt5Dashboard()});
