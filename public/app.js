@@ -13,7 +13,7 @@ let sb=null, cloudAvailable=false, cloudError='', busy=false, importing=false;
 let uploadResult=null;
 const paymentBucket='edgoria-payment-proofs';
 const calendarSessionRules={};
-const state={member:null,eligibility_status:'pending',adminUserFilter:'all',adminUserQuery:'',role:'trader',personalJournalLoaded:false,profile:null,access:null,accessAdmin:null,v4AdminRoles:null,isAdmin:false,adminData:null,adminIssues:[],timezone:DEFAULT_ZONE,mode:'cloud',user:null,view:'dashboard',account:'all',period:'1',analysisDate:'',data:emptyData(),month:new Date().toISOString().slice(0,7),selectedDay:'',search:'',calendarPreset:'ny_close',};
+const state={partnerRequest:null,member:null,eligibility_status:'pending',adminUserFilter:'all',adminUserQuery:'',role:'trader',personalJournalLoaded:false,profile:null,access:null,accessAdmin:null,v4AdminRoles:null,isAdmin:false,adminData:null,adminIssues:[],timezone:DEFAULT_ZONE,mode:'cloud',user:null,view:'dashboard',account:'all',period:'1',analysisDate:'',data:emptyData(),month:new Date().toISOString().slice(0,7),selectedDay:'',search:'',calendarPreset:'ny_close',};
 const sections=[
   {v:'dashboard',i:'▦',n:'Overview'}, {v:'trades',i:'↗',n:'Operaciones'},
   {v:'calendar',i:'▤',n:'Calendario P&L'}, {v:'analytics',i:'◫',n:'Analytics'},
@@ -821,15 +821,21 @@ function lockedDashboard(){
 }
 async function refreshMember(){
  try{state.member=await apiGet('v4?route=member')}catch(err){state.member={enabled:false,proofs:[],affiliate:null,network:'TRC20',wallet:'TB5UoKnA1zK5AowiiWH8QUT7DMKcCdUphN',price_cents:1099};console.warn('EDGORIA: estado comercial no disponible',err.message)}
+ try{const result=await apiGet('affiliate-enroll');state.partnerRequest=result.application||null}catch(err){console.warn('EDGORIA: solicitud partner no disponible',err.message);state.partnerRequest=null}
 }
 async function ensureRequestedAffiliate(){
- if(state.user?.user_metadata?.requested_profile!=='affiliate'||state.member?.affiliate)return;
- try{await apiPost('affiliate-enroll');await refreshMember()}catch(e){console.warn('Solicitud de afiliación pendiente:',e.message)}
+ // Selecting Affiliate on registration only opens the application form.
+ // Never enroll a user or assign a code without an explicit application and admin approval.
+ return;
 }
 function pendingSettings(){const p=state.profile||{};return pageTitle('MI CUENTA','Ajustes y perfil','Actualiza tus datos mientras se revisa tu acceso.')+`<section class="card eg61-payment-card"><form id="v4-profile-form" class="formstack"><label class="control">Nombre completo<input class="field" name="full_name" minlength="2" maxlength="120" required value="${escapeHTML(p.full_name||state.user?.user_metadata?.full_name||'')}"></label><label class="control">País<input class="field" name="country" minlength="2" maxlength="100" required value="${escapeHTML(p.country||state.user?.user_metadata?.country||'')}"></label><label class="control">Teléfono opcional<input class="field" name="phone" maxlength="24" value="${escapeHTML(p.phone||'')}"></label><input type="hidden" name="experience" value="${escapeHTML(p.experience||'prefiero_no_decir')}"><button class="btn primary" type="submit">Guardar perfil</button></form></section>`}
+function partnerApplicationForm(){
+ return `<form id="partner-application-form" class="formstack eg62-partner-form"><label class="control">Tu nombre o marca<input class="field" name="display_name" required minlength="3" maxlength="120" autocomplete="organization" value="${escapeHTML(state.profile?.full_name||state.user?.user_metadata?.full_name||'')}"></label><label class="control">Canal principal<select class="field" name="channel" required><option value="">Selecciona uno</option><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="instagram">Instagram</option><option value="community">Comunidad de traders</option><option value="education">Academia o educación</option><option value="website">Sitio web</option><option value="other">Otro</option></select></label><label class="control">Enlace a tu canal (opcional)<input class="field" name="channel_url" type="url" maxlength="220" placeholder="https://..."></label><label class="control">Audiencia estimada<input class="field" name="audience_size" type="number" min="0" max="100000000" required placeholder="0"></label><label class="control">¿Cómo presentarías EDGORIA a tu comunidad?<textarea class="field" name="motivation" rows="5" required minlength="40" maxlength="1500" placeholder="Cuéntanos qué tipo de contenido haces y cómo recomendarías la plataforma."></textarea></label><div class="notice">Enviar una solicitud no activa la suscripción ni genera un enlace. El administrador revisará tu propuesta antes de autorizarte.</div><button class="btn primary" type="submit">Enviar solicitud de partner →</button></form>`;
+}
 function pendingAffiliateView(){
- const affiliate=state.member?.affiliate;
- return pageTitle('EDGORIA PARTNERS','Mi perfil de afiliado','La inscripción no habilita el journal ni genera comisiones automáticamente.')+`<section class="card eg61-payment-card"><div class="section-label">PROGRAMA DE AFILIADOS</div><h2>${affiliate?'Tu solicitud de afiliación':'Solicita ser afiliado'}</h2><p>Comisión de referencia: 25 % por la primera mensualidad comercial verificada; 30 % para partners autorizados. Tu cuenta de trader puede permanecer pendiente mientras revisamos esta solicitud.</p><div class="statrow"><span>Estado</span><strong>${escapeHTML(affiliate?.status||'Sin solicitud')}</strong></div>${affiliate?.status==='active'?`<label class="control">Tu enlace<input class="field" value="${escapeHTML(location.origin+'/?ref='+affiliate.code)}" readonly></label><button class="btn" data-action="copy-pending-affiliate">Copiar enlace</button>`:affiliate?'<p class="notice">El administrador revisará tu solicitud. No compartas un enlace hasta su aprobación.</p>':'<button class="btn primary" data-action="enroll-affiliate">Solicitar afiliación →</button>'}<p class="micro">Las comisiones se registran únicamente tras verificar una venta elegible; no dependen de los permisos del Journal.</p></section>`;
+ const a=state.member?.affiliate,p=state.partnerRequest;
+ const active=a?.status==='active';
+ return pageTitle('EDGORIA PARTNERS','Mi perfil de afiliado','Recomienda EDGORIA tras la aprobación administrativa. Sin activar el journal.')+`<section class="card eg61-payment-card"><div class="section-label">PROGRAMA PARTNERS</div><h2>${active?'Tu enlace aprobado':p?'Solicitud recibida':'Solicitar alianza'}</h2><p>Comisión estándar: 25 % por la primera mensualidad verificada. Hasta 30 % para partners aprobados. Ningún registro o captura concede acceso automáticamente.</p><div class="statrow"><span>Estado</span><strong>${escapeHTML(active?'Aprobado':p?.status||'Sin solicitud')}</strong></div>${active?`<label class="control">Tu enlace personal<input class="field" value="${escapeHTML('https://www.edgoriatradingjournal.com/?ref='+a.code)}" readonly></label><button class="btn" data-action="copy-pending-affiliate">Copiar enlace</button>`:p?`<div class="notice">Tu solicitud está ${escapeHTML(p.status==='pending'?'pendiente de evaluación':p.status==='rejected'?'rechazada; contacta a soporte':'en revisión')}. No publiques un enlace hasta que se apruebe.</div>`:partnerApplicationForm()}<p class="micro">El administrador registra las ventas verificadas y gestiona las comisiones por separado.</p></section>`;
 }
 function membership(){
  const proofs=state.member?.proofs||[];
@@ -841,10 +847,10 @@ function membership(){
 }
 
 function affiliatesView(){
- const a=state.data.edgoria_affiliates[0],origin=location.origin;
- const link=a?origin+'/?ref='+encodeURIComponent(a.code):'';
+ const a=state.member?.affiliate||state.data.edgoria_affiliates[0],p=state.partnerRequest;
+ const active=a?.status==='active',link=active?'https://www.edgoriatradingjournal.com/?ref='+encodeURIComponent(a.code):'';
  const commissions=state.data.edgoria_partner_commissions||[];
- return pageTitle('EDGORIA PARTNERS','Programa de afiliados','Recomienda el producto y recibe comisiones por pagos verificados.')+`<div class="grid2"><section class="card"><div class="section-label">EDGORIA PARTNERS</div><div class="price-hero">${a?.rate_basis_points?Number(a.rate_basis_points)/100:25}% <small>· primer mes verificado; 30% solo para partners aprobados</small></div><div class="statrow"><span>Estado</span><b>${escapeHTML(a?.status||'Sin solicitud')}</b></div>${a?`<label class="control">Enlace de invitación<input readonly class="field" value="${escapeHTML(link)}"/></label><button class="btn" data-action="copy-affiliate">Copiar enlace</button>`:'<p class="hint">Inscríbete para solicitar tu enlace. Activación tras revisión.</p><button class="btn primary" data-action="enroll-affiliate">Solicitar ser afiliado</button>'}<div class="notice" style="margin-top:14px">No existe comisión por invitar afiliados. Se excluyen autorreferidos, reembolsos y pagos fuera del período de elegibilidad.</div></section><section class="card"><h3>Mis comisiones</h3><div class="statrow"><span>Comisiones registradas</span><b>${commissions.length}</b></div><div class="statrow"><span>Pendientes</span><b>${usd(commissions.filter(c=>c.status==='pending').reduce((s,c)=>s+Number(c.commission_cents)/100,0),false)}</b></div><div class="statrow"><span>Pagadas</span><b>${usd(commissions.filter(c=>c.status==='paid').reduce((s,c)=>s+Number(c.commission_cents)/100,0),false)}</b></div><p class="micro">La atribución se registra para cuentas nuevas mediante el enlace de afiliado. Su aprobación y pago requieren controles administrativos.</p></section></div>`;
+ return pageTitle('EDGORIA PARTNERS','Programa de afiliados','Solicita tu alianza y recibe comisiones por primeras ventas verificadas.')+`<div class="grid2"><section class="card"><div class="section-label">EDGORIA PARTNERS</div><div class="price-hero">${active?Number(a.rate_basis_points)/100:25}% <small>· primera mensualidad verificada; 30 % para partners especiales</small></div><div class="statrow"><span>Estado</span><b>${escapeHTML(active?'Aprobado':p?.status||'Sin solicitud')}</b></div>${active?`<label class="control">Enlace aprobado<input readonly class="field" value="${escapeHTML(link)}"/></label><button class="btn" data-action="copy-affiliate">Copiar enlace</button>`:p?'<p class="notice">Tu solicitud está en evaluación. El enlace se generará tras la aprobación administrativa.</p>':partnerApplicationForm()}<div class="notice" style="margin-top:14px">Los registros por enlace se atribuyen una sola vez. Las comisiones se generan por la primera venta elegible verificada, no por registros gratuitos.</div></section><section class="card"><h3>Mis comisiones</h3><div class="statrow"><span>Comisiones registradas</span><b>${commissions.length}</b></div><div class="statrow"><span>Pendientes</span><b>${usd(commissions.filter(c=>c.status==='pending').reduce((s,c)=>s+Number(c.commission_cents)/100,0),false)}</b></div><div class="statrow"><span>Pagadas</span><b>${usd(commissions.filter(c=>c.status==='paid').reduce((s,c)=>s+Number(c.commission_cents)/100,0),false)}</b></div><p class="micro">La activación de la suscripción y el registro de ventas son procesos separados.</p></section></div>`;
 }
 // Este apartado solo crea, edita y elimina fichas de cuentas MT5.
 // La conexión de datos (Bridge y Excel) vive exclusivamente en connectV4.
@@ -857,7 +863,7 @@ function mt5AccountsManager(){
   const connected=(state.data.edgoria_mt5_connections||[]).some(c=>c.account_id===a.id);
   return `<article class="mt5-account-item"><div class="mt5-account-main"><div class="mt5-account-name">${name}</div><p class="micro">${firm} · ${type} · ${usd(a.account_size||0,false)} nominal</p><p class="micro">${trades} posiciones · ${files} archivos · ${connected?'Bridge configurado':'Sin vincular'}</p></div><div class="mt5-account-actions"><button type="button" class="btn small" data-action="edit-account" data-id="${id}">Editar</button><button type="button" class="btn small danger" data-action="delete-account" data-id="${id}" aria-label="Eliminar cuenta ${name}">Eliminar</button></div></article>`;
  }).join('');
- return `<section class="card mt5-account-manager" id="mt5-accounts-manager"><div class="cardhead"><h3>Mis cuentas MT5 (${accounts.length})</h3><button type="button" class="btn primary" data-action="new-account">+ Crear cuenta</button></div>
+ return `<section class="card mt5-account-manager" id="mt5-accounts-manager"><div class="cardhead"><h3>Mis cuentas MT5 (${accounts.length}/5)</h3><button type="button" class="btn primary" data-action="new-account" ${accounts.length>=5?'disabled title="Máximo cinco cuentas"':''}>+ Crear cuenta</button></div>
  <p class="hint">Aquí únicamente administras las fichas de tus cuentas: crear, editar o eliminar. La conexión MT5 y la importación Excel / CSV se realizan después en <b>MT5 Bridge</b>.</p>
  ${items||'<div class="empty">Todavía no tienes cuentas. Selecciona «Crear cuenta» para registrar la primera.</div>'}
  <div class="notice">Eliminar una cuenta puede borrar también su historial asociado. EDGORIA pedirá confirmación explícita antes de permitirlo.</div>
@@ -999,7 +1005,7 @@ async function onAction(act,btn){
       modal(`<div class="split-head"><h2>Captura privada</h2><button class="btn" data-action="close-modal">Cerrar</button></div><img class="eg31-full-image" src="${escapeHTML(data.signedUrl)}" alt="Captura privada de journal"/>`,true);break;
     }
     case 'neo13-import':{await changeView('connect');requestAnimationFrame(()=>document.getElementById('mt5-import-section')?.scrollIntoView({behavior:'smooth',block:'start'}));break;}
-    case 'new-account':accountModal(null);break;
+    case 'new-account':if((state.data.accounts||[]).length>=5)throw Error('Ya alcanzaste el máximo de cinco cuentas');accountModal(null);break;
     case 'edit-account':{
       const account=state.data.accounts.find(a=>String(a.id)===String(id));
       if(!account)throw Error('No se encontró esta cuenta. Actualiza los datos y vuelve a intentarlo.');
@@ -1029,7 +1035,7 @@ async function onAction(act,btn){
     case 'refresh-entitlement':await loadIdentity();await refreshMember();if(state.role==='admin'){location.assign('/admin');return;}if(state.role!=='pending'){await loadCloud();await checkAdmin()}render();notify('Estado actualizado');break;
     case 'show-payment-wallet':{const node=$('#eg61-wallet');if(node){node.hidden=!node.hidden;btn.textContent=node.hidden?'Ver datos para pagar con USDT →':'Ocultar dirección'}break;}
     case 'copy-payment-wallet':{const address=$('#eg61-wallet-address')?.value;if(!address)throw Error('Dirección no disponible');await navigator.clipboard.writeText(address);notify('Dirección copiada; comprueba la red TRC20');break;}
-    case 'copy-pending-affiliate':{const a=state.member?.affiliate;if(!a||a.status!=='active')throw Error('Tu enlace aún no está habilitado');await navigator.clipboard.writeText(location.origin+'/?ref='+a.code);notify('Enlace copiado');break;}
+    case 'copy-pending-affiliate':{const a=state.member?.affiliate;if(!a||a.status!=='active')throw Error('Tu enlace aún no está habilitado');await navigator.clipboard.writeText('https://www.edgoriatradingjournal.com/?ref='+a.code);notify('Enlace copiado');break;}
     case 'reload-roles':await fetchAdminRoles();update();break;
     case 'admin-filter':{const filter=String(btn.dataset.filter||'all');if(['all','pending','active','suspended'].includes(filter)){state.adminUserFilter=filter;update();}break;}
     case 'reload-access':await fetchAccessAdmin();update();break;
@@ -1061,9 +1067,9 @@ async function onAction(act,btn){
     case 'suspend-affiliate':await adminAction('suspend-affiliate',id);break;
     case 'approve-commission':await adminAction('approve-commission',id);break;
     case 'mark-commission-paid':if(confirm('¿Comprobaste que la transferencia al afiliado fue efectivamente realizada?'))await adminAction('mark-commission-paid',id,'TRANSFER_VERIFIED');break;
-    case 'enroll-affiliate':await apiPost('affiliate-enroll');await refreshMember();if(state.role!=='pending')await loadCloud();update();notify('Solicitud de afiliación registrada');break;
+    case 'enroll-affiliate':state.view='affiliates';render();break;
     case 'copy-affiliate':{
-      const a=state.data.edgoria_affiliates[0];if(!a)throw Error('No hay enlace');await navigator.clipboard.writeText(location.origin+'/?ref='+a.code);notify('Enlace copiado');break;
+      const a=state.member?.affiliate||state.data.edgoria_affiliates[0];if(!a||a.status!=='active')throw Error('El enlace todavía no está aprobado');await navigator.clipboard.writeText('https://www.edgoriatradingjournal.com/?ref='+a.code);notify('Enlace copiado');break;
     }
     case 'mt5-revoke':if(confirm('¿Revocar el acceso del conector MT5?')){await apiPost('mt5-disconnect',{connection_id:id});await refreshData();notify('Token MT5 revocado')}break;
     
@@ -1160,12 +1166,17 @@ async function formSubmit(form){
     const {error}=await sb.from('edgoria_trade_annotations').upsert(obj,{onConflict:'trade_id'});if(error)throw error;
     closeModal();await refreshData();notify('Notas guardadas sin alterar las operaciones');return;
   }
+  if(form.id==='partner-application-form'){
+    const obj={display_name:String(values.display_name||'').trim(),channel:String(values.channel||''),channel_url:String(values.channel_url||'').trim(),audience_size:Number(values.audience_size),motivation:String(values.motivation||'').trim()};
+    const outcome=await apiPost('affiliate-enroll',obj);state.partnerRequest=outcome.application||null;await refreshMember();notify('Tu solicitud de partner fue enviada a revisión');render();return;
+  }
   if(form.id==='account-form'){
     const obj={name:String(values.name).trim(),firm:String(values.firm).trim(),account_type:values.account_type,account_size:Number(values.account_size),daily_loss_limit:Number(values.daily_loss_limit),max_loss_limit:Number(values.max_loss_limit),target:Number(values.target)};
     if(!obj.name||obj.name.length>100||!obj.firm||obj.firm.length>100)throw Error('Introduce el nombre y proveedor de la cuenta.');
     if(!['personal','demo','challenge','funded'].includes(obj.account_type))throw Error('Tipo de cuenta inválido.');
     if(!Number.isFinite(obj.account_size)||obj.account_size<=0||['daily_loss_limit','max_loss_limit','target'].some(k=>!Number.isFinite(obj[k])||obj[k]<0))throw Error('Revisa los importes: deben ser números válidos y no negativos.');
     const id=form.dataset.id;
+    if(!id&&(state.data.accounts||[]).length>=5)throw Error('Límite alcanzado: máximo cinco cuentas por usuario.');
     const created=await writeData('accounts',id?{...obj,id}:obj,id?'update':'insert');
     if(created?.id)state.account=created.id;
     closeModal();await refreshData();notify(id?'Cuenta actualizada':'Cuenta MT5 creada. Selecciónala en el importador Excel.');return;
