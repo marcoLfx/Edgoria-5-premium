@@ -9,6 +9,8 @@ export default {async fetch(req){
   const owner=await rest('accounts',{query:`id=eq.${filter(account_id)}&user_id=eq.${filter(user.id)}&select=id`});
   if(owner?.length!==1)return json({error:'Cuenta no encontrada'},404);
   const existing=await rest('edgoria_mt5_connections',{query:`account_id=eq.${filter(account_id)}&select=id,status`});
+  const owned=await rest('edgoria_mt5_connections',{query:`user_id=eq.${filter(user.id)}&select=id&limit=6`});
+  if(owned.length>=5)return json({error:'Límite alcanzado: máximo cinco vinculaciones MT5 por usuario.'},409);
   if(existing?.length)return json({error:'Esta ficha ya tiene una vinculación MT5. Si el token fue revocado, utiliza la opción Crear token nuevo. Para otro login MT5 crea otra ficha.'},409);
   const conn=await rest('edgoria_mt5_connections',{method:'POST',prefer:'return=representation',body:{user_id:user.id,account_id,mt5_login:String(mt5_login),server:server.trim()}});
   const token=randomToken();

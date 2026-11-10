@@ -20,6 +20,7 @@ export function safeError(error){
  const status=error?.status||500;
  if(status===401)return [{error:'Inicia sesión para continuar',code:'AUTH_REQUIRED'},401];
  if(status===403)return [{error: String(error.message||'Acceso restringido').slice(0,180),code:error.code||'FORBIDDEN'},403];
+ if(error?.code==='SUBSCRIPTION_REQUIRED')return [{error:'Tu membresía necesita activación o renovación.',code:'SUBSCRIPTION_REQUIRED'},403];
  if(status===404)return [{error:'Registro no encontrado',code:'NOT_FOUND'},404];
  if(status===409)return [{error:String(error?.message||'La operación no puede completarse').slice(0,180),code:error?.code||'CONFLICT'},409];
  if(status===400||status===413||status===422)return [{error:String(error.message).slice(0,200),code:error.code||'INVALID_REQUEST'},status];

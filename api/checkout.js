@@ -1,5 +1,6 @@
 import {json,rest,signedIn,filter} from '../server/supabase.js';
 export default {async fetch(req){
+ if(process.env.EDGORIA_USDT_MANUAL_ENABLED==='1')return Response.json({error:'Los pagos se verifican manualmente; no hay checkout automático en esta versión.'},{status:409});
  if(req.method!=='POST')return json({error:'Método no permitido'},405);
  try{
   const user=await signedIn(req);if(!user)return json({error:'Inicia sesión'},401);

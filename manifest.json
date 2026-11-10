@@ -1,0 +1,54 @@
+{
+  "public/app.js": {
+    "base_sha256": "2f3f1b9e3cd54264e227072020908d10df6fb9462440ee407dffd6154d71c253",
+    "new_sha256": "790f545034ddbcb7f99b6bbb50bec9a9a22b42374fef4ff5ca38ae0a02eee4d0"
+  },
+  "public/app.html": {
+    "base_sha256": "d96514504d25623d2a78cfa79da6fee6f10537212df0d477e5017853951b20da",
+    "new_sha256": "389e99ef919898d08c5b920b2195455478cc10d60471d6d1dcca61cdc4d1e919"
+  },
+  "public/index.html": {
+    "base_sha256": "fe194783a2f1362fea5239dd387d20f78b163b96b2179bdff677390fa79b2f73",
+    "new_sha256": "02b192f2217962b77afd0d000afd2e36befda3920d8bf1a786724d829787712e"
+  },
+  "public/edgoria-launch55.css": {
+    "base_sha256": "149deecfee8016138aaef96d54ab5ae21efcac892c670fe3f6cffc0d256c2050",
+    "new_sha256": "65e8fc11aa86d371307a8a2ddc67d38705a212d4ded8b2ea26988856755c6668"
+  },
+  "public/edgoria56.css": {
+    "base_sha256": null,
+    "new_sha256": "8e53063e5647a8b3e291cdbea4892d5fc945e7012fba22278554e3617b8222b7"
+  },
+  "server/v4-access-management.js": {
+    "base_sha256": "e00744efc344618c8e34c50739d72db2c192a9a16182a7b7e8c0a9001a9add51",
+    "new_sha256": "8a34cc60800ef213e57dac9c027c5185110e588be06a995ecd598e661509987c"
+  },
+  "server/v4-me.js": {
+    "base_sha256": "2dce4dee5de49743b2bd7e33adb3a56801ac5d5f51976aead2df60c2f2d209cb",
+    "new_sha256": "b0242a1f62a49258e2cc88d145c1e9cc32fa3bfd9f750adeb4e2762c286fc613"
+  },
+  "server/v4-user-data.js": {
+    "base_sha256": "b0995a192903202a09f0b99fc157d3fd2976da69f7b6dc1c404615190e1215fc",
+    "new_sha256": "4d8863fb33ae77175516fb31530e103857917e473c5a45074c2dfdaf1270d6ac"
+  },
+  "server/v4-access.js": {
+    "base_sha256": "2ef73bd91af3068f807fc466f310fbda9ea3eeb6a9e5736f8c32102a811c0e09",
+    "new_sha256": "4becf18d36b160429d4b9511a79e3272dd747006edb7013790121e806d8168a9"
+  },
+  "server/mt5-connect.js": {
+    "base_sha256": "85ac0659034fdac0feb0fa96a72e2d0a6cc376fa5989fcba690d677b56527c2b",
+    "new_sha256": "40f79f76f30cbf792ebdfef7da75ffad6706f8178c31ed7f9d7411d2b52f15e1"
+  },
+  "api/checkout.js": {
+    "base_sha256": "a66a18d798d8f6534810c535e94d9267efa62a9482d2bedf010511218911860d",
+    "new_sha256": "a53a8b8b13505384ef62e5c213d6edde0c4c605aa7b56d27a9c1cb15d152f236"
+  },
+  "supabase/edgoria_v56_manual_usdt.sql": {
+    "base_sha256": null,
+    "new_sha256": "21aa2a615f42648875b1ec66b7e8f798b50a0c194ac159221cd33078866c3a3b"
+  },
+  "tests/v56-ui-payments.test.js": {
+    "base_sha256": null,
+    "new_sha256": "cd19bd0cbc835c27e56c0ce0cbb693630f153c85bcedfae3c9071577370c596d"
+  }
+}
