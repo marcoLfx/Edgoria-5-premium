@@ -41,6 +41,7 @@ test('secrets not copied into client or rewrite destinations',()=>{
  assert.doesNotMatch(app,/sb_secret_[A-Za-z0-9_-]{10,}|eyJhbGciOi[A-Za-z0-9_-]{20,}/);
  for(const rewrite of conf.rewrites) {
   if(rewrite.source==='/app'){assert.equal(rewrite.destination,'/app.html');continue;}
+  if(rewrite.source==='/admin'){assert.equal(rewrite.destination,'/admin.html');continue;}
   assert.match(rewrite.destination,/^\/api\/(v4|mt5)\?route=[a-z0-9-]+$/);
  }
 });

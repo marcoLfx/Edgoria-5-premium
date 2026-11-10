@@ -5,6 +5,19 @@
   "cleanUrls": true,
   "headers": [
     {
+      "source": "/admin",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, private"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
@@ -45,6 +58,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
     {
       "source": "/app",
       "destination": "/app.html"

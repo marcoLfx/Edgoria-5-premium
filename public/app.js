@@ -126,6 +126,7 @@ async function init(){
       state.timezone=localStorage.getItem('edgoria_trading_tz_'+state.user.id)||DEFAULT_ZONE;
       await bootStage('Cargando perfil',()=>ensureProfile(),11000);
       try{await bootStage('Verificando rol y permisos',()=>loadIdentity(),11000)}catch(e){if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code)){bootFinished();renderPending(e.code);return;}if(e.code==='SUBSCRIPTION_REQUIRED'){bootFinished();renderSubscriptionPending();return;}if(e.code==='ACCESS_DISABLED'){bootFinished();renderSuspended();return;}throw e}
+      if(state.role==='admin'){bootFinished();location.replace('/admin');return;}
       await bootStage('Revisando invitación',()=>tryClaimReferral(),11000);
       await bootStage('Cargando operaciones y dashboard',()=>loadCloud(),16000);
       await bootStage('Comprobando permisos administrativos',()=>checkAdmin(),11000);
@@ -203,11 +204,11 @@ async function login(form){
     const full_name=String(f.get('full_name')||'').trim(),country=String(f.get('country')||'').trim(),phone=String(f.get('phone')||'').trim(),experience=String(f.get('experience')||'prefiero_no_decir');
     if(full_name.length<2||full_name.length>120||country.length<2||country.length>100||phone.length>24||!['principiante','intermedio','avanzado','prefiero_no_decir'].includes(experience))throw Error('Completa correctamente tus datos de registro');
     const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/app',data:{full_name,country,phone,experience}}});if(error)throw error;
-    if(data.session){state.user=data.user;state.timezone=localStorage.getItem('edgoria_trading_tz_'+state.user.id)||DEFAULT_ZONE;await ensureProfile();try{await loadIdentity()}catch(e){if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code)){renderPending(e.code);return;}if(e.code==='SUBSCRIPTION_REQUIRED'){renderSubscriptionPending();return;}if(e.code==='ACCESS_DISABLED'){renderSuspended();return;}throw e}await tryClaimReferral();await loadCloud();await checkAdmin();render()}
+    if(data.session){state.user=data.user;state.timezone=localStorage.getItem('edgoria_trading_tz_'+state.user.id)||DEFAULT_ZONE;await ensureProfile();try{await loadIdentity()}catch(e){if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code)){renderPending(e.code);return;}if(e.code==='SUBSCRIPTION_REQUIRED'){renderSubscriptionPending();return;}if(e.code==='ACCESS_DISABLED'){renderSuspended();return;}throw e}if(state.role==='admin'){location.assign('/admin');return;}await tryClaimReferral();await loadCloud();await checkAdmin();render()}
     else{renderAuth(false);notify('¡Bienvenido! Revisa tu correo: verifica tu dirección y espera la aprobación de EDGORIA.')}
   }else{
     const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;
-    state.user=data.user;state.timezone=localStorage.getItem('edgoria_trading_tz_'+state.user.id)||DEFAULT_ZONE;await ensureProfile();try{await loadIdentity()}catch(e){if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code)){renderPending(e.code);return;}if(e.code==='SUBSCRIPTION_REQUIRED'){renderSubscriptionPending();return;}if(e.code==='ACCESS_DISABLED'){renderSuspended();return;}throw e}await tryClaimReferral();await loadCloud();await checkAdmin();render();notify('Bienvenido a EDGORIA');
+    state.user=data.user;state.timezone=localStorage.getItem('edgoria_trading_tz_'+state.user.id)||DEFAULT_ZONE;await ensureProfile();try{await loadIdentity()}catch(e){if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code)){renderPending(e.code);return;}if(e.code==='SUBSCRIPTION_REQUIRED'){renderSubscriptionPending();return;}if(e.code==='ACCESS_DISABLED'){renderSuspended();return;}throw e}if(state.role==='admin'){location.assign('/admin');return;}await tryClaimReferral();await loadCloud();await checkAdmin();render();notify('Bienvenido a EDGORIA');
   }
 }
 async function ensureProfile(){
@@ -1003,7 +1004,7 @@ async function onAction(act,btn){
 
     case 'recover':renderRecover();break;
     case 'toggle-auth':renderAuth(btn.dataset.register==='1');break;
-    case 'check-approval':{try{const {data}=await sb.auth.getUser();state.user=data.user;await loadIdentity();await loadCloud();await checkAdmin();render();notify('Acceso autorizado. Bienvenido a EDGORIA.')}catch(e){if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code))renderPending(e.code);else if(e.code==='SUBSCRIPTION_REQUIRED')renderSubscriptionPending();else throw e}break;}
+    case 'check-approval':{try{const {data}=await sb.auth.getUser();state.user=data.user;await loadIdentity();if(state.role==='admin'){location.assign('/admin');break;}await loadCloud();await checkAdmin();render();notify('Acceso autorizado. Bienvenido a EDGORIA.')}catch(e){if(['ACCESS_PENDING','EMAIL_UNCONFIRMED'].includes(e.code))renderPending(e.code);else if(e.code==='SUBSCRIPTION_REQUIRED')renderSubscriptionPending();else throw e}break;}
     case 'signout':await logout();break;
     case 'menu':$('#sidebar')?.classList.toggle('show');break;
     case 'annotate-trade':annotationModal(state.data.trades.find(x=>String(x.id)===id));break;

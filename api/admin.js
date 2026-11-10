@@ -1,7 +1,9 @@
+import adminConsole from '../server/admin-console.js';
 import {json,rest,filter} from '../server/supabase.js';
 import {requireAdmin} from '../server/v4-access.js';
 const idRx=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export default {async fetch(req){
+ if(new URL(req.url).searchParams.get('route')==='console')return adminConsole.fetch(req);
  if(!['GET','POST'].includes(req.method))return json({error:'Método no permitido'},405);
  try{
   const user=await requireAdmin(req);

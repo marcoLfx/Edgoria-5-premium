@@ -43,8 +43,10 @@ export default {async fetch(req){
       const ref=String(body.payment_reference||'').trim();
       if(!/^[A-Za-z0-9_:/.\-]{8,160}$/.test(ref))throw invalid('Referencia de verificación inválida',400);
       if(!exists[0].email_confirmed_at)throw invalid('Usuario no ha confirmado correo',409);
-      // Atomic SQL function logs proof, grants a calendar month, and activates access in a single transaction.
-      await rest('rpc/edgoria_record_usdt_payment',{method:'POST',body:{p_user_id:userId,p_admin_id:actor.id,p_reference:ref,p_amount_cents:1099}});
+      const amount=Number(body.amount_cents);
+      if(!Number.isInteger(amount)||![1099,1499].includes(amount))throw invalid('Selecciona una tarifa válida para el pago verificado',400);
+      // The DB transaction writes an audit entry, activates access and triggers an immutable calendar period.
+      await rest('rpc/edgoria_record_usdt_payment',{method:'POST',body:{p_user_id:userId,p_admin_id:actor.id,p_reference:ref,p_amount_cents:amount}});
       return json({ok:true,action,user_id:userId});
     }
     if(action==='revoke-usdt'){
