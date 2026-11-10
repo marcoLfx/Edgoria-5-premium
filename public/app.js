@@ -241,17 +241,21 @@ function navGroup(title,names){
   return `<div class="navtitle">${escapeHTML(title)}</div>`+items.map(x=>`<button class="navbtn ${state.view===x.v?'active':''}" type="button" data-view="${x.v}"><span class="ico">${navIcon(x.v)}</span>${escapeHTML(x.n)}</button>`).join('');
 }
 function sidebarNavigation(){
- if(state.role==='admin')return navGroup('CENTRO DE CONTROL',['admin','roles','settings'])+
-   navGroup('MI JOURNAL PRIVADO',['dashboard','trades','calendar','analytics','mindset','prop','connect']);
+ // EDGORIA51_NAV: preserve original route IDs and role boundaries.
+ const button=(v,label)=>{if(!canOpenView(v))return '';const x=sections.find(e=>e.v===v);return `<button class="navbtn ${state.view===v?'active':''}" data-view="${v}" type="button"><span class="ico">${navIcon(v)}</span>${escapeHTML(label)}</button>`};
  if(state.role==='partner')return navGroup('PARTNERS',['affiliates','settings']);
- return navGroup('TU ACTIVIDAD',['dashboard','trades','calendar','analytics'])+
-   navGroup('REVISIÓN Y DISCIPLINA',['mindset','risk','score'])+
-   navGroup('CUENTAS Y DATOS',['prop','connect'])+
-   navGroup('TU ESPACIO',['membership','affiliates','settings']);
+ if(state.role==='admin')return navGroup('ADMINISTRACIÓN',['admin','roles'])+navGroup('JOURNAL PRIVADO',['dashboard','trades','analytics','risk','prop','intelligence','mindset','calendar','score','connect','settings']);
+ return `<div class="ed51-sidebar-primary">`+
+ button('dashboard','Dashboard')+button('trades','Journal')+button('analytics','Analytics')+
+ button('risk','Risk Watch')+button('prop','Prop Firm Hub')+button('intelligence','AI Coach')+
+ button('mindset','Strategy Lab')+button('calendar','Calendario')+button('score','Reportes')+
+ `</div><div class="ed51-nav-separator"></div><div class="ed51-sidebar-secondary">`+
+ button('connect','Cuenta')+button('prop','Mis Cuentas')+button('membership','Suscripción')+button('settings','Ajustes')+
+ `</div>`;
 }
 function shell(){
  const showOwnAccounts=state.role==='trader'||(state.role==='admin'&&adminPrivateViews.has(state.view));
- $('#root').innerHTML=`<div class="shell"><aside class="sidebar" id="sidebar"><div class="sidebar-scroll" id="sidebar-scroll">${brand}${sidebarNavigation()}<div class="sidebar-bottom"><div class="tip"><strong>◈ Insight of the day</strong><p>El objetivo del journal es ayudarte a comprender tus decisiones, no predecir el mercado.</p></div><button class="profile" data-action="signout"><span class="avatar">●</span><span class="info"><b>${escapeHTML(state.profile?.full_name||state.user?.user_metadata?.full_name||'Mi cuenta')}</b><small>${escapeHTML(state.user?.email||'')}</small></span><span>↗</span></button></div></div><div class="sidebar-scrollrail" id="sidebar-scrollrail" role="scrollbar" aria-label="Desplazar el menú izquierdo" aria-controls="sidebar-scroll" aria-orientation="vertical" tabindex="0"><div id="sidebar-scrollthumb" class="sidebar-scrollthumb"></div></div></aside><div class="content"><header class="topbar"><div class="row"><button class="btn iconbtn mobilemenu" data-action="menu" aria-label="Abrir menú">☰</button><span class="breadcrumb">${escapeHTML(viewBreadcrumb())}</span></div><div class="top-actions"><span class="eg31-welcome">Hola, <strong>${escapeHTML((state.profile?.full_name||state.user?.user_metadata?.full_name||'Usuario').split(/\s+/)[0])}</strong></span><span class="dot hide-mobile"></span><span class="micro hide-mobile">${escapeHTML(state.role.toUpperCase())}</span>${showOwnAccounts?`<select class="field" id="account-select" aria-label="Filtrar mi cuenta MT5"><option value="all">Todas mis cuentas</option>${state.data.accounts.map(a=>`<option value="${escapeHTML(a.id)}" ${state.account===a.id?'selected':''}>${escapeHTML(a.name)}</option>`).join('')}</select>`:''}<button class="btn small signout-top" data-action="signout" title="Cerrar sesión" aria-label="Cerrar sesión">↪ Salir</button></div></header><main class="workspace" id="workspace"></main><footer class="footer"><span>© EDGORIA / 5.0</span><span>Los resultados proceden de posiciones cerradas de Bridge y archivos. Tus cuentas permanecen privadas.</span></footer></div></div>`;
+ $('#root').innerHTML=`<div class="shell"><aside class="sidebar" id="sidebar"><div class="sidebar-scroll" id="sidebar-scroll">${brand}${sidebarNavigation()}<div class="sidebar-bottom"><div class="tip"><strong>◈ Insight of the day</strong><p>El objetivo del journal es ayudarte a comprender tus decisiones, no predecir el mercado.</p></div><button class="profile" data-action="signout"><span class="avatar">●</span><span class="info"><b>${escapeHTML(state.profile?.full_name||state.user?.user_metadata?.full_name||'Mi cuenta')}</b><small>${escapeHTML(state.user?.email||'')}</small></span><span>↗</span></button></div></div><div class="sidebar-scrollrail" id="sidebar-scrollrail" role="scrollbar" aria-label="Desplazar el menú izquierdo" aria-controls="sidebar-scroll" aria-orientation="vertical" tabindex="0"><div id="sidebar-scrollthumb" class="sidebar-scrollthumb"></div></div></aside><div class="content"><header class="topbar"><div class="row"><button class="btn iconbtn mobilemenu" data-action="menu" aria-label="Abrir menú">☰</button><span class="breadcrumb">${escapeHTML(viewBreadcrumb())}</span></div><div class="top-actions"><span class="eg31-welcome">Hola, <strong>${escapeHTML((state.profile?.full_name||state.user?.user_metadata?.full_name||'Usuario').split(/\s+/)[0])}</strong></span><span class="dot hide-mobile"></span><span class="micro hide-mobile">${escapeHTML(state.role.toUpperCase())}</span>${showOwnAccounts?`<select class="field" id="account-select" aria-label="Filtrar mi cuenta MT5"><option value="all">Todas mis cuentas</option>${state.data.accounts.map(a=>`<option value="${escapeHTML(a.id)}" ${state.account===a.id?'selected':''}>${escapeHTML(a.name)}</option>`).join('')}</select>`:''}<button class="btn small signout-top" data-action="signout" title="Cerrar sesión" aria-label="Cerrar sesión">↪ Salir</button></div></header><main class="workspace" id="workspace"></main><footer class="footer"><span>© EDGORIA / 5.2</span><span>Los resultados proceden de posiciones cerradas de Bridge y archivos. Tus cuentas permanecen privadas.</span></footer></div></div>`;
  initSidebarScroll();
 }
 // Una barra visible permite arrastrar con el mouse aun cuando el sistema
@@ -388,29 +392,6 @@ function eg16RecordsPanel(){
  const draw=(d,trade,positive)=>`<article class="eg16-record ${positive?'eg16-best':'eg16-worst'}"><div class="eg16-record-top"><span>${positive?'MEJOR DÍA':'PEOR DÍA'}</span><span class="eg16-record-icon">${positive?'↗':'↘'}</span></div><strong class="eg16-record-value mono">${d?usd(d.pnl):'N/D'}</strong><div class="eg16-record-pct">${d?eg14Percent(d.pnl,base):'—'} del capital nominal</div><div class="eg16-record-date">${d?eg14DayLabel(d.date)+' · '+d.count+' operaciones':'Todavía no existe una jornada neta '+(positive?'positiva':'negativa')}</div><div class="eg16-record-sub">Mayor ${positive?'ganancia':'pérdida'} en una sola operación: <b>${trade?usd(trade.pnl):'N/D'}</b></div></article>`;
  return `<section class="eg16-records-wrap" aria-label="Mejor y peor jornada histórica"><div class="eg16-records-head"><div><span class="eg15-eyebrow">RÉCORDS POR JORNADA · HISTORIAL COMPLETO</span><h2>Tu mejor y tu peor día</h2><p>Un solo día neto, no una suma de varios días. Se actualiza cuando importas operaciones.</p></div><span class="eg16-record-count">${rec.days.length} jornadas</span></div><div class="eg16-records-grid">${draw(rec.best,rec.bestTrade,true)}${draw(rec.worst,rec.worstTrade,false)}</div></section>`;
 }
-function eg16FundedPayouts(){
- // Financial data belongs exclusively in Analytics. MT5 Bridge remains an import/connect workspace.
- const accts=(state.data.accounts||[]).filter(a=>a.account_type==='funded'&&(state.account==='all'||String(state.account)===String(a.id)));
- if(!accts.length)return '';
- const sum=xs=>xs.reduce((n,x)=>n+(Number(x.amount)||0),0);
- const entries=accts.map(a=>{
-  const detected=(state.data.edgoria_v4_cash_movements||[]).filter(x=>String(x.account_id)===String(a.id)&&x.event_type==='withdrawal').sort((x,y)=>Date.parse(y.event_time)-Date.parse(x.event_time));
-  const manual=(state.data.payouts||[]).filter(x=>String(x.account_id)===String(a.id)).sort((x,y)=>String(y.paid_at).localeCompare(String(x.paid_at)));
-  const row=(m,kind)=>`<li class="eg181-event"><div><time>${escapeHTML(eg14DayLabel(String(kind==='mt5'?m.event_time:m.paid_at).slice(0,10)))}</time><span>${escapeHTML(kind==='mt5'?(m.description||'Movimiento identificado en MT5'):(m.note||'Anotación manual'))}</span></div><strong class="mono">${usd(Number(m.amount)||0,false)}</strong></li>`;
-  const count=detected.length+manual.length;
-  return `<article class="eg181-account-card" aria-label="Historial funded de ${escapeHTML(a.name)}">
-    <div class="eg181-account-title"><span class="eg181-funded-dot" aria-hidden="true"></span><div><h3>${escapeHTML(a.name)}</h3><p>${escapeHTML(a.firm||'Cuenta fondeada')} · FUNDED</p></div><span class="eg181-count">${count} movimiento${count===1?'':'s'}</span></div>
-    <div class="eg181-summary-grid"><div><span>Retiros detectados en archivos</span><strong class="mono">${usd(sum(detected),false)}</strong><small>${detected.length} registro${detected.length===1?'':'s'} MT5</small></div><div><span>Retiros anotados manualmente</span><strong class="mono">${usd(sum(manual),false)}</strong><small>${manual.length} registro${manual.length===1?'':'s'} manual${manual.length===1?'':'es'}</small></div></div>
-    ${count?`<details class="eg181-events"><summary><span>Consultar movimientos <small>${count} registros</small></span><span aria-hidden="true">⌄</span></summary><div class="eg181-events-columns"><div><h4>Detectados en archivo MT5</h4>${detected.length?`<ul>${detected.map(m=>row(m,'mt5')).join('')}</ul>`:'<p class="eg181-empty">Sin movimientos MT5 identificados.</p>'}</div><div><h4>Registrados manualmente</h4>${manual.length?`<ul>${manual.map(m=>row(m,'manual')).join('')}</ul>`:'<p class="eg181-empty">Sin anotaciones manuales.</p>'}</div></div></details>`:'<p class="eg181-empty eg181-account-empty">No se identificaron retiros en los reportes de esta cuenta. Puedes importar un historial actualizado desde MT5 Bridge.</p>'}
-  </article>`;
- });
- return `<section class="eg181-funded-section" id="funded-withdrawals" aria-label="Retiros de cuentas funded en Analytics">
-  <header class="eg181-section-head"><div><div class="eg181-eyebrow"><span class="eg181-funded-dot"></span> ANALYTICS · CUENTAS FUNDED</div><h2>Retiros de cuentas fondeadas</h2><p>Consulta tus movimientos identificados en archivos y tus anotaciones manuales, sin mezclarlos con las ganancias de operaciones.</p></div><span class="eg181-account-counter">${accts.length} cuenta${accts.length===1?'':'s'}</span></header>
-  <div class="eg181-account-list">${entries.join('')}</div>
-  <details class="eg181-clarification"><summary>Cómo se interpretan estos importes</summary><p>Solo se detectan movimientos negativos etiquetados explícitamente como retirada, withdrawal, payout u otras variantes reconocidas. Un movimiento en el reporte MT5 no demuestra que se haya completado un pago externo. Los importes detectados y los anotados manualmente se muestran por separado porque podrían corresponder a un mismo retiro. No se restan del P&L de operaciones.</p></details>
- </section>`;
-}
-
 /* NEO 17 · Quiet, focused home dashboard; all advanced tools remain in Analytics. */
 function eg17CompactRiskItem(label,level,usdLimit,loss,utilization,scope){
  const valid=Number.isFinite(Number(utilization))&&usdLimit>0;
@@ -456,34 +437,39 @@ function eg42DailyReview(){
  <p>${reviewing?'Tu reflexión está guardada. Puedes revisar el proceso y las capturas en tu diario.':'Registra qué respetaste, qué cambiarías y qué aprendiste. Sin necesidad de predecir resultados.'}</p></div>
  <button type="button" class="eg42-review-cta" data-view="mindset">${reviewing?'Abrir mi diario':'Revisar mi jornada'} <span aria-hidden="true">↗</span></button></section>`;
 }
-function dashboard(){
- const arr=visibleTrades(),s=stats(arr),base=eg14AccountsCapital(),r=eg15Risk();
- const rec=dailyRecords(visibleTrades(false),configuredCalendarPreset()),pct=eg14Percent(s.total,base);
- return `<div class="eg17-dashboard eg42-dashboard" data-edgoria-version="4.2">
- <header class="eg17-header"><div><span class="eg17-overline">EDGORIA 5.0 · TRADING INTELLIGENCE</span><h1>Tus decisiones, <em>más claras.</em></h1><p>Un resumen útil, sin ruido: rendimiento realizado, disciplina y evolución de tus cuentas.</p></div>${neoPeriodControl()}</header>
- ${!state.data.accounts.length?`<section class="eg17-empty-start"><h3>Comienza con una cuenta MT5</h3><p>Crea tu cuenta y sube el historial desde Bridge para ver indicadores reales.</p><button class="btn primary" data-view="prop" type="button">Crear cuenta MT5 →</button></section>`:''}
- <section class="eg17-overview" aria-label="Principales indicadores del período">
- <article class="eg17-hero ${s.total<0?'eg17-hero-loss':''}"><div class="eg17-hero-top"><span class="eg17-overline">RESULTADO NETO · PERÍODO SELECCIONADO</span><span class="eg17-hero-icon" aria-hidden="true">↗</span></div><strong class="eg17-hero-value mono">${usd(s.total)}</strong><div class="eg17-hero-footer"><span class="eg17-percent ${s.total<0?'red':'green'}">${pct} <small>del capital nominal</small></span><span class="eg17-trades-count">${arr.length} operaciones cerradas</span></div></article>
- ${eg17SummaryCard('Ganancias cerradas',usd(s.grossWin),`${s.win} operaciones positivas`,'eg17-gain','↗')}
- ${eg17SummaryCard('Pérdidas cerradas',usd(-s.grossLoss),`${s.loss} operaciones negativas`,'eg17-loss','↘')}
- ${eg17SummaryCard('Tasa de acierto',asPercent(s.wr),`${s.win} de ${s.count} cierres`,'eg17-winrate','◎')}
- </section>
- ${eg42DailyReview()}
- <div class="eg17-primary-grid">
- <section class="eg17-surface eg17-equity"><header class="eg17-panel-heading"><div><div class="eg17-overline">EVOLUCIÓN</div><h2>Curva de capital</h2><p>Haz clic, pasa el mouse o usa Tab sobre un punto para consultar su jornada.</p></div><span class="eg17-chart-unit">USD · cierres</span></header>${neoEquityChart(arr)}</section>
- ${eg17RiskAside(r)}
- </div>
- <div class="eg17-bottom-grid"><section class="eg17-surface eg17-records"><header class="eg17-panel-heading"><div><div class="eg17-overline">RÉCORDS DEL HISTORIAL</div><h2>Jornadas destacadas</h2><p>El mayor resultado neto de un solo día.</p></div><button class="eg17-text-link" data-view="analytics" type="button">Analizar ↗</button></header><div class="eg17-record-mini-grid">${eg17RecordMini(rec.best,true,base)}${eg17RecordMini(rec.worst,false,base)}</div></section>
- ${eg17RecentTrades(arr)}</div>
- <details class="eg17-extra"><summary><span><strong>Más análisis y configuración</strong><small>Distribución de cierres, resultados por activo, jornadas y horario de la cuenta</small></span><span class="eg17-chevron" aria-hidden="true">⌄</span></summary><div class="eg17-extra-content"><div class="eg17-extra-grid">
- <section class="card"><div class="cardhead"><h3>Distribución de cierres</h3><span class="tag positive">${asPercent(s.wr)} win rate</span></div>${distribution(s)}${eg14LotsCard(arr)}</section>
- <section class="card"><div class="cardhead"><h3>Resultado por jornada</h3><small>Fechas del período</small></div>${dailyPlot(arr,14)}</section>
- <section class="card"><div class="cardhead"><h3>Rendimiento por activo</h3><small>P&L de cada símbolo</small></div>${perfBars(arr,'symbol')}</section>
- <section class="card"><div class="cardhead"><h3>Horario de jornada MT5</h3></div>${calendarConfigUI()}</section></div></div></details>
- <div class="eg17-bottom-note">Los porcentajes usan el capital nominal de las cuentas seleccionadas. La curva representa capital estimado, no equity flotante; el monitor de límites es orientativo y no certifica el cumplimiento con una prop firm.</div>
- </div>`;
+/* EDGORIA51_DASHBOARD: actual closed positions only, no demo or fabricated AI insights. */
+function ed51GroupedBars(arr,key){return perfBars(arr,key)}
+function ed51Score(arr){if(!arr.length)return '<div class="ed51-donut ed51-empty-score"><span>—<small>Sin datos</small></span></div><p class="micro">Score de proceso pendiente: configura criterios y evidencias de disciplina.</p>';
+ const withRisk=arr.filter(t=>Number(t.risk)>0).length;
+ return `<div class="ed51-donut ed51-score" style="--risk-score:${Math.round(withRisk/arr.length*100)}%"><span>${Math.round(withRisk/arr.length*100)}<small>/100 · calidad del registro de riesgo</small></span></div><p class="micro">Porcentaje de operaciones con riesgo documentado; no es una evaluación psicológica.</p>`;
 }
-
+function ed51Heatmap(arr){
+ const days=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];let cells=Array.from({length:7},()=>Array(12).fill(0));
+ for(const t of arr){const d=new Date(t.closed_at);if(Number.isNaN(+d))continue;const wd=(d.getUTCDay()+6)%7,h=d.getUTCHours();cells[wd][Math.floor(h/2)]+=Number(t.pnl)||0;}
+ return `<div class="ed51-heatmap" role="img" aria-label="Mapa de calor de resultado neto por día y franja de dos horas en UTC"><div class="ed51-heatgrid">${days.map((day,i)=>`<div class="ed51-heatrow"><small>${day}</small>${cells[i].map((n,j)=>`<span class="${n>0?'pos':n<0?'neg':''}" style="opacity:${n?Math.min(1,.25+Math.abs(n)/Math.max(1,...cells.flat().map(Math.abs))*.75):.12}" title="${day} ${j*2}:00 UTC · ${usd(n)}"></span>`).join('')}</div>`).join('')}</div><div class="ed51-hours">${[0,4,8,12,16,20].map(n=>`<small>${n}:00</small>`).join('')}</div><small class="micro">UTC · resultado por hora de cierre (no de entrada)</small></div>`;
+}
+function ed51Recent(arr){return eg17RecentTrades(arr)}
+function ed51Insights(arr,s){if(!arr.length)return '<p class="micro">Importa tus operaciones MT5 para generar observaciones basadas en datos.</p>';
+ const by={};for(const t of arr){const k=t.symbol||'Sin símbolo';(by[k]??=[]).push(Number(t.pnl)||0)};
+ const rank=Object.entries(by).map(([k,v])=>[k,v.reduce((a,b)=>a+b,0),v.length]).sort((a,b)=>b[1]-a[1]);
+ return `<div class="ed51-insight"><b>Mayor contribución por activo</b><p>${escapeHTML(rank[0][0])} · ${usd(rank[0][1])}, sobre ${rank[0][2]} operaciones.</p></div><div class="ed51-insight"><b>Calidad de la muestra</b><p>${s.count} cierres en el período. Las asociaciones históricas no predicen resultados futuros.</p></div><div class="ed51-insight"><b>Expectativa por operación</b><p>${usd(s.expect)} netos por cierre; verifica comisiones y criterios de importación.</p></div>`;
+}
+function dashboard(){
+ const arr=visibleTrades(),s=stats(arr),base=eg14AccountsCapital(),risk=eg15Risk();
+ const breakeven=Math.max(0,s.count-s.win-s.loss),winPct=s.count?s.win/s.count*100:0,lossPct=s.count?s.loss/s.count*100:0;
+ const pf=Number.isFinite(s.pf)?s.pf.toFixed(2):s.count&&s.grossWin?'∞':'N/D';
+ const rr=s.avgR===null?'N/D':s.avgR.toFixed(2)+'R';
+ const mini=(label,val,detail,kind)=>`<article class="ed51-metric ${kind||''}"><span>${label}</span><strong>${val}</strong><small>${detail}</small></article>`;
+ return `<div class="ed51-dashboard" data-edgoria-version="5.1-pro"><div class="ed51-head"><div><h1>Hola, ${escapeHTML((state.profile?.full_name||state.user?.user_metadata?.full_name||'Trader').split(/\s+/)[0])}</h1><p>Aquí está tu rendimiento real. Revisa tus decisiones y la disciplina de tu plan.</p></div>${neoPeriodControl()}</div>
+ ${!state.data.accounts.length?'<div class="notice">Conecta tu cuenta MT5 o importa operaciones para visualizar estadísticas reales.</div>':''}
+ <div class="ed51-metrics">${mini('Net P&L',usd(s.total),`${s.count} cierres · ${eg14Percent(s.total,base)} del capital`,s.total>=0?'good':'bad')}${mini('Win Rate',asPercent(s.wr),`${s.win} ganadas`)}${mini('Profit Factor',pf,'Ganancias brutas / pérdidas brutas')}${mini('RR Promedio',rr,s.avgR===null?'Requiere riesgo por operación':'Por unidad de riesgo registrada')}${mini('Operaciones',String(s.count),`${s.loss} perdidas · ${breakeven} neutras`)}</div>
+ <div class="ed51-chart-row"><section class="ed51-panel ed51-equity"><header><div><h2>Curva de Capital</h2><p>Evolución estimada según cierres MT5</p></div><small>USD · cerrado</small></header>${neoEquityChart(arr)}</section>
+ <section class="ed51-panel ed51-score-panel"><h2>Performance Score</h2>${ed51Score(arr)}<button data-view="score" class="ed51-link">Ver detalles →</button></section>
+ <section class="ed51-panel ed51-distribution"><h2>Distribución de Resultados</h2><div class="ed51-donut" style="--win:${winPct}%;--loss:${lossPct}%"><span>${s.count}<small>operaciones</small></span></div><div class="ed51-legend"><div><span>● Ganadoras</span><b>${s.win}</b></div><div><span>● Perdedoras</span><b>${s.loss}</b></div><div><span>● Break Even</span><b>${breakeven}</b></div></div></section></div>
+ <div class="ed51-analysis-row"><section class="ed51-panel"><header><h2>Mejores Símbolos</h2><small>Net P&L</small></header>${ed51GroupedBars(arr,'symbol')}</section><section class="ed51-panel"><header><h2>Mejor Franja Horaria</h2><small>UTC</small></header>${ed51Heatmap(arr)}</section><section class="ed51-panel"><header><h2>Estrategias</h2><small>Clasificación registrada</small></header>${ed51GroupedBars(arr,'strategy')}</section><section class="ed51-panel"><header><h2>Últimas Operaciones</h2><button data-view="trades" class="ed51-link">Ver todas →</button></header>${ed51Recent(arr)}</section></div>
+ <div class="ed51-bottom-row"><section class="ed51-panel ed51-insights"><header><h2>Insights de EDGORIA</h2><span class="ed51-tag">Análisis descriptivo</span></header><div class="ed51-insight-grid">${ed51Insights(arr,s)}</div></section><section class="ed51-panel"><h2>Plan de riesgo del día</h2>${eg17RiskAside(r)}</section></div>
+ <p class="ed51-disclaimer">Solo operaciones cerradas. Curva de capital estimada, no equity flotante. El score visible mide registro de riesgo; no garantiza rendimiento ni cumplimiento de reglas de fondeo.</p></div>`;
+}
 function tradesView(){
   let arr=visibleTrades().filter(t=>!state.search||[t.symbol,t.session,t.notes].join(' ').toLowerCase().includes(state.search.toLowerCase()));
   const s=stats(arr);
@@ -615,37 +601,37 @@ function neo13Sessions(arr){
  return {title:'Rendimiento por sesión',description:'Solo cuando MT5 registra una sesión identificable.',markup:'<div class="neo-chart-empty">Aún no hay información de sesiones en estas operaciones.</div>'};
 }
 function analytics(){
- const arr=visibleTrades(),s=stats(arr),knownRisk=arr.filter(t=>Number(t.risk)>0).length;
- const classified=neoGroups(arr,'strategy');const strategyTagged=classified.some(e=>e.name!=='Sin clasificar'&&e.name!=='—');
- const strategyData=strategyTagged?classified:neoGroups(arr,'symbol');
- const strategyTitle=strategyTagged?'Rendimiento por estrategia':'Rendimiento por activo';
- const strategyInfo=strategyTagged?'P&L neto de tus estrategias registradas.':'Clasificación real por símbolo MT5.';
- const months=neoMonths(arr),session=neo13Sessions(arr),base=eg14AccountsCapital(),summary=periodSummary(arr,configuredCalendarPreset(),base);
- const best=summary.best,worst=summary.worst,dd=summary.drawdownDayMax,lotage=summary.lots;
- return `<div class="neo-analytics neo13-analytics eg15-analytics eg42-analytics" data-release="4.2">
- <header class="neo13-heading"><div class="neo13-heading-copy"><div class="neo13-kicker"><span class="neo-live-dot"></span> PATTERN DISCOVERY <span class="neo13-build">NOVA 4.2</span></div><h1>Analytics <em>sin ruido</em></h1><p>Profundiza en tus jornadas, identifica patrones y documenta decisiones con datos registrados.</p></div>${neoPeriodControl()}</header>
- <div class="neo13-meta"><span class="neo13-meta-pill"><i></i> ${arr.length} operaciones cerradas</span><span>P&L del período <b class="${s.total<0?'red':'green'}">${usd(s.total)}</b> · <b>${eg14Percent(s.total,base)}</b></span><span class="neo13-meta-rule">${escapeHTML(CALENDAR_PRESETS[configuredCalendarPreset()].label)}</span>${(state.data.accounts||[]).some(a=>a.account_type==='funded'&&(state.account==='all'||String(state.account)===String(a.id)))?'<a class="eg181-payout-shortcut" href="#funded-withdrawals">Ver retiros funded ↓</a>':''}</div>
- ${eg16RecordsPanel()}
- <details class="eg42-analytics-risk"><summary>Ver diagnóstico de límites y drawdown <span>↗</span></summary>${eg15RiskPanel(true)}</details>
- <div class="neo-metric-grid neo13-kpis">
- ${neoMetric('Gross profit',usd(s.grossWin),`${s.win} operaciones positivas · ${eg14Percent(s.grossWin,base)} nominal`,'positive',neoMetricSeries(arr,'grossWin'))}
- ${neoMetric('Gross loss',usd(-s.grossLoss),`${s.loss} operaciones negativas · ${eg14Percent(-s.grossLoss,base)} nominal`,'negative',neoMetricSeries(arr,'grossLoss'))}
- ${neoMetric('Max. drawdown',usd(-s.maxDd,false),`${eg14Percent(-s.maxDd,base)} nominal · solo cierres`,'violet',neoMetricSeries(arr,'drawdown'))}
- ${neoMetric('Lotaje promedio MT5',lotage.average===null?'N/D':lotage.average.toFixed(2)+' lotes',lotage.count?`${lotage.count} cierres con volumen`:'Histórico aún sin lotaje','blue',lotage.count?neoMetricSeries(arr,'avgLots'):[])}
- </div>
- <div class="eg42-analytics-context"><span>▦ <strong>${arr.length}</strong> cierres analizados</span><span>Resultado neto <strong class="${s.total<0?'red':'green'}">${usd(s.total)}</strong></span><span>R-multiple promedio <strong>${s.avgR==null?'N/D':s.avgR.toFixed(2)+' R'}</strong></span><small>El promedio R solo incluye cierres con riesgo inicial registrado (${knownRisk}).</small></div>
- <div class="neo13-primary-row">
- ${neo13Panel({eyebrow:'EVOLUCIÓN DE CAPITAL',title:'Curva de capital estimada',description:'Coloca el mouse sobre un punto para ver P&L diario y saldo estimado.',extra:`<div class="neo13-panel-total ${s.total>=0?'green':'red'}">${usd(s.total)}<small>NET P&L</small></div>`,content:neoEquityChart(arr),className:'neo13-equity'})}
- ${neo13Panel({eyebrow:'ANÁLISIS DE MERCADO',title:session.title,description:session.description,extra:'<span class="neo13-unit">USD · Neto</span>',content:session.markup,className:'neo13-session'})}
- </div>
- <div class="neo13-secondary-row">
- ${neo13Panel({eyebrow:'DISTRIBUCIÓN',title:strategyTitle,description:strategyInfo,extra:'<span class="neo13-unit">USD · Neto</span>',content:neoHorizontalBars(strategyData),className:'neo13-strategy'})}
- ${neo13Panel({eyebrow:'PATRONES HISTÓRICOS',title:'P&L por día de la semana',description:'Resultado total por jornada definida.',extra:'<span class="neo13-unit">USD · Neto</span>',content:neoWeekPlot(arr),className:'neo13-weekday'})}
- ${neo13Panel({eyebrow:'VISIÓN MENSUAL',title:'P&L mensual',description:'Resultados de los meses con operaciones.',extra:'<span class="neo13-unit">USD · Neto</span>',content:months.length?neoVerticalBars(months.slice(-7),'Resultado mensual'):'<div class="neo-chart-empty">Aún no hay meses con operaciones cerradas.</div>',className:'neo13-monthly'})}
- </div>
- ${eg16FundedPayouts()}
- ${neo13BridgeCTA()}
- <div class="neo13-disclaimer">Los porcentajes usan el capital nominal de las cuentas seleccionadas, no una tasa de retorno real. El lotaje solo está disponible para importaciones que lo conserven. Los gráficos se calculan con operaciones cerradas de tus cuentas MT5. El drawdown mostrado es realizado, no incluye pérdidas flotantes ni sustituye los límites oficiales de una prop firm. Los valores N/D indican información insuficiente.</div>
+ const arr=visibleTrades(),s=stats(arr),base=eg14AccountsCapital(),knownRisk=arr.filter(t=>Number(t.risk)>0).length;
+ const classified=neoGroups(arr,'strategy'),tagged=classified.some(e=>e.name!=='Sin clasificar'&&e.name!=='—');
+ const strategyData=tagged?classified:neoGroups(arr,'symbol');
+ const months=neoMonths(arr),session=neo13Sessions(arr),summary=periodSummary(arr,configuredCalendarPreset(),base);
+ const pf=Number.isFinite(s.pf)?s.pf.toFixed(2):(s.grossWin>0?'∞':'N/D');
+ const rr=s.avgR==null?'N/D':s.avgR.toFixed(2)+' R';
+ const metric=(label,val,help,kind='')=>`<div class="eg52-stat ${kind}"><span>${label}</span><strong>${val}</strong><small>${help}</small></div>`;
+ return `<div class="eg52-analytics" data-release="5.2"><header class="eg52-analytics-header"><div><div class="eg52-eyebrow">EDGORIA / PERFORMANCE INTELLIGENCE</div><h1>Analytics <em>esencial.</em></h1><p>Patrones claros, sin saturar tu espacio de trabajo.</p></div>${neoPeriodControl()}</header>
+ ${arr.length===0?'<div class="notice">Sin operaciones cerradas en este período. Importa datos de MT5 o amplía el filtro temporal.</div>':''}
+ <section class="eg52-stats" aria-label="Resumen de rendimiento">
+ ${metric('Resultado neto',usd(s.total),`${arr.length} operaciones cerradas`,s.total>=0?'positive':'negative')}
+ ${metric('Win rate',asPercent(s.wr),`${s.win} ganadoras / ${s.loss} perdedoras`)}
+ ${metric('Profit factor',pf,'Ganancia bruta / pérdida bruta')}
+ ${metric('RR promedio',rr,`${knownRisk} operaciones con riesgo registrado`)}
+ ${metric('Drawdown realizado',usd(-s.maxDd,false),'No incluye posiciones abiertas')}
+ </section>
+ <section class="eg52-main-grid" aria-label="Análisis principal">
+ <article class="eg52-surface eg52-capital"><div class="eg52-panel-head"><div><span class="eg52-eyebrow">RENDIMIENTO</span><h2>Curva de capital</h2><p>Capital estimado a partir de cierres MT5</p></div><span class="eg52-chip">USD · Neto</span></div>${neoEquityChart(arr)}</article>
+ <article class="eg52-surface eg52-sessions"><div class="eg52-panel-head"><div><span class="eg52-eyebrow">SESIÓN</span><h2>${session.title}</h2><p>${session.description}</p></div></div>${session.markup}</article>
+ </section>
+ <section class="eg52-secondary-grid" aria-label="Patrones importantes">
+ <article class="eg52-surface"><div class="eg52-panel-head"><div><span class="eg52-eyebrow">ESTRATEGIAS Y ACTIVOS</span><h2>${tagged?'Por estrategia':'Por símbolo'}</h2><p>Resultado neto registrado</p></div></div>${neoHorizontalBars(strategyData)}</article>
+ <article class="eg52-surface"><div class="eg52-panel-head"><div><span class="eg52-eyebrow">HÁBITOS OPERATIVOS</span><h2>Días de la semana</h2><p>Resultados por jornada de trading</p></div></div>${neoWeekPlot(arr)}</article>
+ </section>
+ <details class="eg52-advanced"><summary><span><b>Explorar análisis avanzado</b><small>Meses, volumen, ganancias y pérdidas brutas, drawdown y límites</small></span><span class="eg52-expand-icon" aria-hidden="true">＋</span></summary><div class="eg52-advanced-body"><section class="eg52-detail-metrics">
+ ${metric('Ganancia bruta',usd(s.grossWin),`${s.win} operaciones positivas`,'positive')}
+ ${metric('Pérdida bruta',usd(-s.grossLoss),`${s.loss} operaciones negativas`,'negative')}
+ ${metric('Expectativa',usd(s.expect),'Promedio por operación')}
+ ${metric('Riesgo documentado',String(knownRisk),'Operaciones con riesgo inicial registrado')}
+ </section><div class="eg52-details-grid"><article class="eg52-surface"><h2>Rendimiento mensual</h2>${months.length?neoVerticalBars(months.slice(-7),'Resultado mensual'):'<p class="eg52-empty">Todavía no hay meses con operaciones.</p>'}</article><article class="eg52-surface"><h2>Diagnóstico de riesgo</h2>${eg15RiskPanel(true)}</article></div>${eg16RecordsPanel()}</div></details>
+ <p class="eg52-method">Todos los datos provienen de operaciones cerradas. Los importes no incluyen pérdidas flotantes, los porcentajes de capital nominal no equivalen a retornos auditados y las métricas no certifican el cumplimiento de una prop firm. No se incluyen retiros de cuentas funded.</p>
  </div>`;
 }
 
@@ -655,7 +641,7 @@ function mindset(){
  const thisMonth=entries.filter(e=>String(e.entry_date).slice(0,7)===today().slice(0,7)).length;
  const recent=entries.slice(0,16);
  const entryMarkup=recent.map(n=>`<article class="eg42-entry"><div class="eg42-entry-top"><div><span class="eg42-entry-date">${escapeHTML(n.entry_date)}</span><strong>${escapeHTML(n.mood||'Reflexión')}</strong></div><span class="eg42-entry-chip ${n.discipline?'good':'neutral'}">${n.discipline?'Plan respetado':'Plan por revisar'}</span></div><p class="eg42-entry-note">${escapeHTML(n.note)}</p><div class="eg31-screenshots">${(state.data.edgoria_journal_attachments||[]).filter(a=>a.entry_id===n.id).map(a=>`<button type="button" class="eg31-image-btn" data-action="open-journal-photo" data-id="${escapeHTML(a.id)}" title="Abrir captura privada"><img alt="Captura privada de la sesión" loading="lazy" data-photo-path="${escapeHTML(a.storage_path)}"><span>Ver imagen ↗</span></button>`).join('')}</div><div class="eg42-entry-foot"><span>Reflexión privada</span><button type="button" class="eg42-text-danger" data-action="delete-note" data-id="${escapeHTML(n.id)}">Eliminar</button></div></article>`).join('');
- return `<div class="eg42-journal"><header class="eg42-journal-header"><div><div class="eg42-eyebrow">EDGORIA / SMART JOURNAL</div><h1>Documenta el proceso. <em>Descubre el patrón.</em></h1><p>Tu espacio para reflexionar sobre tus decisiones y adjuntar capturas de la sesión. Solo tú puedes acceder.</p></div><span class="eg42-private-mark">◈ PRIVADO</span></header>
+ return `<div class="eg42-journal"><header class="eg42-journal-header"><div><div class="eg42-eyebrow">EDGORIA / JOURNAL PRIVADO</div><h1>Documenta el proceso. <em>Descubre el patrón.</em></h1><p>Tu espacio para reflexionar sobre tus decisiones y adjuntar capturas de la sesión. Solo tú puedes acceder.</p></div><span class="eg42-private-mark">◈ PRIVADO</span></header>
  <div class="eg42-journal-stats"><div><span>Reflexiones guardadas</span><strong>${entries.length}</strong></div><div><span>Este mes</span><strong>${thisMonth}</strong></div><div><span>Capturas vinculadas</span><strong>${withMedia}</strong></div></div>
  <div class="eg42-journal-grid"><section class="eg42-journal-panel eg42-write"><div class="eg42-panel-top"><div><div class="eg42-eyebrow">REVISIÓN DE JORNADA</div><h2>Tu próxima reflexión</h2></div><span>01 / 02</span></div><form id="mindset-form" class="formstack"><div class="eg42-form-row"><label class="control">Fecha<input class="field" type="date" name="entry_date" value="${today()}" required/></label><label class="control">¿Cómo te sentiste?<select class="field" name="mood"><option>Concentrado</option><option>Tranquilo</option><option>Impulsivo</option><option>Ansioso</option><option>Cansado</option><option>Motivado</option></select></label></div>
  <div class="eg42-guidance"><b>Para empezar, responde estas tres preguntas:</b><ol><li>¿Qué decisión respetó tu plan?</li><li>¿Qué harías diferente?</li><li>¿Qué aprendizaje quieres recordar?</li></ol></div>
@@ -923,7 +909,7 @@ function annotationModal(t){
  const a=state.data.edgoria_trade_annotations.find(x=>x.trade_id===t.id);
  modal(`<div class="split-head"><div><div class="section-label">OPERACIÓN MT5</div><h2>Notas de revisión</h2></div><button class="btn iconbtn" data-action="close-modal">×</button></div><div class="notice">${escapeHTML(t.symbol)} · ${usd(t.pnl)}. La operación original nunca se modifica.</div><form id="annotation-form" data-trade="${escapeHTML(t.id)}"><div class="formstack"><label class="control">Mis observaciones<textarea class="field" name="notes" maxlength="3000" placeholder="¿Qué observaste?">${escapeHTML(a?.notes||'')}</textarea></label></div>${actions()}</form>`);
 }
-function payoutModal(id){modal(`<div class="split-head"><div><div class="section-label">TRACKING</div><h2>Registrar retiro</h2></div><button class="btn iconbtn" data-action="close-modal">×</button></div><form id="payout-form"><input type="hidden" name="account_id" value="${escapeHTML(id)}"/><div class="formstack"><label class="control">Fecha<input class="field" type="date" name="paid_at" required value="${today()}"/></label><label class="control">Importe (USD)<input class="field" type="number" name="amount" min="0.01" step=".01" required placeholder="0.00"/></label><label class="control">Nota opcional<input class="field" name="note" maxlength="300" placeholder="Ej. Payout registrado manualmente"/></label></div>${actions()}</form>`)}
+
 function csvCell(v,field){let text=String(v??'');if(!['pnl','risk','commission','swap'].includes(field)&&/^[\s]*[=+@-]/.test(text))text="'"+text;return '"'+text.replaceAll('"','""')+'"'}
 function exportCsv(){const cols=['closed_at','symbol','direction','pnl','risk','strategy','session','account_id','external_id','notes','commission','swap'];const lines=[cols.join(','),...visibleTrades(false).map(t=>cols.map(k=>csvCell(t[k],k)).join(','))].join('\r\n');const blob=new Blob(['\ufeff'+lines],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='edgoria-journal.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);notify('Exportación preparada');}
 
@@ -1112,7 +1098,7 @@ async function formSubmit(form){
     closeModal();await refreshData();notify(id?'Cuenta actualizada':'Cuenta MT5 creada. Selecciónala en el importador Excel.');return;
   }
 
-  if(form.id==='payout-form'){const amount=Number(values.amount);if(!Number.isFinite(amount)||amount<=0)throw Error('Importe inválido');await writeData('payouts',{account_id:values.account_id,paid_at:values.paid_at,amount,note:String(values.note||'')});closeModal();await refreshData();notify('Retiro registrado');return}
+
   if(form.id==='mindset-form'){
    const note=String(values.note||'').trim();if(!note)throw Error('Escribe una reflexión');
    const images=[...form.querySelector('[name="screenshots"]')?.files||[]];
