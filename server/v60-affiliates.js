@@ -4,14 +4,31 @@ import {requireAdmin,safeError} from './v4-access.js';
 const uuid=/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
 const enabled=()=>process.env.EDGORIA_AFFILIATES_V60_ENABLED==='1';
+// Every source is diagnosed separately. Never log source rows or secrets.
 const paging=async(table,select,order='created_at.desc')=>{
- const out=[];
- for(let offset=0;offset<5000;offset+=500){
-  const chunk=await rest(table,{query:`select=${select}&order=${order}&limit=500&offset=${offset}`});
-  if(!Array.isArray(chunk))throw fail('No se pudo cargar registros',503);
-  out.push(...chunk);if(chunk.length<500)break;
+ try{
+  const out=[];
+  for(let offset=0;offset<5000;offset+=500){
+   const chunk=await rest(table,{query:`select=${select}&order=${order}&limit=500&offset=${offset}`});
+   if(!Array.isArray(chunk))throw fail('Respuesta inválida del origen de datos',503);
+   out.push(...chunk);if(chunk.length<500)break;
+  }
+  return out;
+ }catch(err){
+  console.error('EDGORIA_AFFILIATES_READ_FAILED',{
+   source:table,status:Number(err?.status)||500,code:String(err?.code||'UNKNOWN').slice(0,40)
+  });
+  err.adminAffiliateSource=table;
+  throw err;
  }
- return out;
+};
+const names={
+ edgoria_affiliates:'afiliados',
+ edgoria_referral_attributions:'referidos',
+ edgoria_manual_sales:'ventas verificadas',
+ edgoria_partner_commissions:'comisiones',
+ edgoria_v4_profiles:'perfiles',
+ edgoria_partner_requests:'solicitudes'
 };
 const report=async()=>{
  const [partners,refs,sales,commissions,profiles,applications]=await Promise.all([
@@ -19,7 +36,7 @@ const report=async()=>{
   paging('edgoria_referral_attributions','id,affiliate_id,referred_user_id,attributed_at','attributed_at.desc'),
   paging('edgoria_manual_sales','id,buyer_id,amount_cents,verified_at,created_at'),
   paging('edgoria_partner_commissions','id,sale_id,affiliate_id,rate_basis_points,commission_cents,status,created_at,approved_at,paid_at'),
-  paging('edgoria_v4_profiles','user_id,email,full_name,created_at'),
+  paging('edgoria_v4_profiles','user_id,full_name,created_at'),
   paging('edgoria_partner_requests','id,user_id,display_name,channel,channel_url,audience_size,motivation,status,created_at,reviewed_at')
  ]);
  return {partners,referrals:refs,sales,commissions,profiles,applications};
@@ -81,5 +98,13 @@ export default {async fetch(request){
    return json({ok:true,action});
   }
   throw fail('Acción no permitida');
- }catch(err){console.error('EDGORIA commercial admin:',err?.code||err?.message||'unknown');const [data,status]=safeError(err);return json(data,status)}
+ }catch(err){
+  if(request.method==='GET' && err?.adminAffiliateSource){
+   const area=names[err.adminAffiliateSource]||'información comercial';
+   return json({ok:false,error:`No se pudo consultar ${area}. Revisa el diagnóstico del servidor.`,
+     code:'AFFILIATES_REPORT_SOURCE',source:err.adminAffiliateSource},503);
+  }
+  console.error('EDGORIA commercial admin:',err?.code||err?.message||'unknown');
+  const [data,status]=safeError(err);return json(data,status);
+ }
 }};

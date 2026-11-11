@@ -62,7 +62,13 @@ function payments(){
 function affiliatesView(){
  if(!commercial)return `<div class="main-title"><div><div class="section-label">PROGRAMA PARTNERS</div><h3>Afiliados de EDGORIA</h3><p>El acceso de los traders se gestiona únicamente en Usuarios.</p></div></div><div class="alert">${e(commercialError||'Cargando información comercial')}</div>`;
  const {partners=[],referrals=[],sales=[],commissions=[],profiles=[],applications=[]}=commercial;
- const profile=id=>profiles.find(p=>p.user_id===id)||{};
+ // Emails come from the already-authenticated Admin Console, not a column absent
+ // in the original v4_profiles migration. Keep the affiliate report schema portable.
+ const profile=id=>{
+  const fromProfile=profiles.find(p=>p.user_id===id)||{};
+  const fromUsers=store.users.find(p=>p.user_id===id)||{};
+  return {...fromUsers,...fromProfile,email:fromProfile.email||fromUsers.email||''};
+ };
  const usd=cents=>`US$${(Number(cents||0)/100).toFixed(2)}`;
  const totals={approved:commissions.filter(x=>x.status==='approved').reduce((n,x)=>n+Number(x.commission_cents||0),0),pending:commissions.filter(x=>x.status==='pending').reduce((n,x)=>n+Number(x.commission_cents||0),0),paid:commissions.filter(x=>x.status==='paid').reduce((n,x)=>n+Number(x.commission_cents||0),0)};
  return `<div class="main-title"><div><div class="section-label">INGRESOS Y ALIANZAS</div><h3>Afiliados y comisiones</h3><p>25% estándar o 30% partner especial, una sola comisión por el primer mes verificado. Ninguna venta activa cuentas.</p></div></div>
