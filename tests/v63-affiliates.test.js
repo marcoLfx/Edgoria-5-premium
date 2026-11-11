@@ -82,7 +82,7 @@ test('migración 6.3 solo cambia el límite de porcentaje, no activa usuarios ni
 
 test('portal visual: accesible también a partners sin subscripción de trader',()=>{
  const src=readFileSync(new URL('../public/app.js',import.meta.url),'utf8');
- assert.match(src,/if\(state\.member\?\.affiliate\?\.status==='active'\)return affiliatesView\(\)/);
+ assert.match(src,/state\.member\?\.affiliate\?\.status==='active'\|\|state\.affiliatePortal\?\.approved===true/);
  assert.match(src,/refresh-affiliate-portal/);
  assert.match(src,/Las estadísticas de afiliación no están disponibles/);
 });
